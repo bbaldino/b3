@@ -8,8 +8,7 @@ macro_rules! impl_bit_read {
         paste! {
             fn [<read_ $type>](&mut self) -> $type {
                 let mut buf = [u1::new(0); $size_bits];
-                // TODO: read_exact
-                self.read(&mut buf).unwrap();
+                self.read_exact(&mut buf).unwrap();
                 let mut val = <$type>::new(0);
                 for i in 0..$size_bits {
                     val <<= 1;
