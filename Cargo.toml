@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 ux = { path = "../uX" } # "0.1.5"
+paste = "1"
