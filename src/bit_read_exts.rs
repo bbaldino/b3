@@ -1,5 +1,5 @@
-use ux::*;
 use paste::paste;
+use ux::*;
 
 use crate::{bit_read::BitRead, byte_order::ByteOrder};
 
@@ -37,8 +37,7 @@ macro_rules! impl_bit_read {
 //     };
 // }
 
-
-pub trait BitReadExts : BitRead {
+pub trait BitReadExts: BitRead {
     impl_bit_read!(u2, 2);
     impl_bit_read!(u3, 3);
     impl_bit_read!(u4, 4);
@@ -56,7 +55,7 @@ impl<T> BitReadExts for T where T: BitRead {}
 
 #[cfg(test)]
 mod tests {
-    use crate::{bitvec, bit_cursor::BitCursor};
+    use crate::{bit_cursor::BitCursor, bitvec};
 
     use super::*;
 

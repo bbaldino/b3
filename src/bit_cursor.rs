@@ -1,6 +1,11 @@
 use ux::u1;
 
-use crate::{bit_vec::BitVec, bit_read::BitRead, slice::{BitSlice, BitSliceMut}, bit_write::BitWrite};
+use crate::{
+    bit_read::BitRead,
+    bit_vec::BitVec,
+    bit_write::BitWrite,
+    slice::{BitSlice, BitSliceMut},
+};
 
 #[derive(Debug)]
 pub struct BitCursor {
@@ -10,10 +15,7 @@ pub struct BitCursor {
 
 impl BitCursor {
     pub fn new(inner: BitVec) -> BitCursor {
-        BitCursor {
-            inner,
-            pos: 0
-        }
+        BitCursor { inner, pos: 0 }
     }
 
     pub fn into_inner(self) -> BitVec {
@@ -40,7 +42,7 @@ impl BitRead for BitCursor {
         Ok(n)
     }
 
-    fn read_exact(&mut self, buf: &mut[u1]) -> std::io::Result<()> {
+    fn read_exact(&mut self, buf: &mut [u1]) -> std::io::Result<()> {
         let n = buf.len();
         BitRead::read_exact(&mut self.remaining_slice(), buf)?;
         self.pos += n;
@@ -52,13 +54,17 @@ impl BitRead for BitCursor {
 impl BitWrite for BitCursor {
     fn write(&mut self, buf: &[u1]) -> std::io::Result<usize> {
         let n = self.remaining_slice().len().min(buf.len());
-        println!("Cursor writing {} bits, curr pos = {}, len = {}", buf.len(), self.pos, self.inner.len());
+        println!(
+            "Cursor writing {} bits, curr pos = {}, len = {}",
+            buf.len(),
+            self.pos,
+            self.inner.len()
+        );
         BitWrite::write(&mut self.remaining_slice_mut(), buf)?;
         self.pos += n;
         Ok(n)
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -66,7 +72,7 @@ mod tests {
 
     use ux::u1;
 
-    use crate::{bitvec, bitarray};
+    use crate::{bitarray, bitvec};
 
     #[test]
     fn test_read() {
@@ -91,12 +97,15 @@ mod tests {
     fn test_write() {
         let vec = bitvec!(0; 16);
         let mut cursor = BitCursor::new(vec);
-       
+
         assert!(cursor.write(&bitarray!(0, 1, 1, 0)).is_ok());
         assert!(cursor.write(&bitarray!(0, 1, 1, 0)).is_ok());
         assert!(cursor.write(&bitarray!(0, 1, 1, 0)).is_ok());
         assert!(cursor.write(&bitarray!(0, 1, 1, 0)).is_ok());
 
-        assert_eq!(cursor.into_inner().get_slice(..), &bitarray!(0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0)[..]);
+        assert_eq!(
+            cursor.into_inner().get_slice(..),
+            &bitarray!(0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0)[..]
+        );
     }
 }

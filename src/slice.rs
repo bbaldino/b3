@@ -1,7 +1,10 @@
 use ux::u1;
 
-use crate::{util::{get_bit, set_bit}, bit_read::BitRead, bit_write::BitWrite};
-
+use crate::{
+    bit_read::BitRead,
+    bit_write::BitWrite,
+    util::{get_bit, set_bit},
+};
 
 // TODO: Deriving PartialEq here requires that _all_ of 'buf' matches, but really we only care that
 // the bits from start_bit_index to end_bit_index match
@@ -9,7 +12,7 @@ use crate::{util::{get_bit, set_bit}, bit_read::BitRead, bit_write::BitWrite};
 pub struct BitSlice<'a> {
     buf: &'a [u8],
     start_bit_index: usize,
-    end_bit_index: usize
+    end_bit_index: usize,
 }
 
 impl BitSlice<'_> {
@@ -17,7 +20,7 @@ impl BitSlice<'_> {
         BitSlice {
             buf,
             start_bit_index,
-            end_bit_index
+            end_bit_index,
         }
     }
 
@@ -45,9 +48,12 @@ impl BitRead for BitSlice<'_> {
         Ok(n)
     }
 
-    fn read_exact(&mut self, buf: &mut[u1]) -> std::io::Result<()> {
+    fn read_exact(&mut self, buf: &mut [u1]) -> std::io::Result<()> {
         if buf.len() > self.len() {
-            return Err(std::io::Error::new(std::io::ErrorKind::UnexpectedEof, "failed to fill whole buffer"));
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::UnexpectedEof,
+                "failed to fill whole buffer",
+            ));
         }
 
         // TODO: optimize...
@@ -77,15 +83,19 @@ impl PartialEq<&[u1]> for BitSlice<'_> {
 pub struct BitSliceMut<'a> {
     buf: &'a mut [u8],
     start_bit_index: usize,
-    end_bit_index: usize
+    end_bit_index: usize,
 }
 
 impl BitSliceMut<'_> {
-    pub(crate) fn new(buf: &mut [u8], start_bit_index: usize, end_bit_index: usize) -> BitSliceMut<'_> {
+    pub(crate) fn new(
+        buf: &mut [u8],
+        start_bit_index: usize,
+        end_bit_index: usize,
+    ) -> BitSliceMut<'_> {
         BitSliceMut {
             buf,
             start_bit_index,
-            end_bit_index
+            end_bit_index,
         }
     }
 

@@ -14,7 +14,7 @@ pub(crate) fn set_bit(byte: &mut u8, bit_index: usize, value: u1) {
         5 => 0b11111011,
         6 => 0b11111101,
         7 => 0b11111110,
-        _ => unreachable!()
+        _ => unreachable!(),
     };
     *byte &= mask;
     let mut value: u8 = value.into();
@@ -33,7 +33,7 @@ pub(crate) fn get_bit(byte: u8, bit_index: usize) -> u1 {
         5 => 0b00000100,
         6 => 0b00000010,
         7 => 0b00000001,
-        _ => unreachable!()
+        _ => unreachable!(),
     };
     let result = byte & mask;
     u1::new(result >> (7 - bit_index))

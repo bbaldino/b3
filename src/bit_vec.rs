@@ -1,27 +1,30 @@
-use std::{ops::RangeBounds, fmt::Debug};
+use std::{fmt::Debug, ops::RangeBounds};
 
 use ux::*;
 
-use crate::{util::{set_bit, get_bit}, slice::{BitSlice, BitSliceMut}};
+use crate::{
+    slice::{BitSlice, BitSliceMut},
+    util::{get_bit, set_bit},
+};
 
 #[derive(Debug)]
 pub struct BitVec {
     buf: Vec<u8>,
-    len: usize
+    len: usize,
 }
 
 impl BitVec {
-    pub fn new() -> BitVec { 
+    pub fn new() -> BitVec {
         BitVec {
             buf: Vec::new(),
-            len: 0
+            len: 0,
         }
     }
 
     pub fn with_capacity(capacity: usize) -> BitVec {
         BitVec {
             buf: Vec::with_capacity((capacity + 7) / 8),
-            len: 0
+            len: 0,
         }
     }
 
@@ -37,7 +40,7 @@ impl BitVec {
 
     pub fn pop(&mut self) -> Option<u1> {
         if self.len == 0 {
-            return None
+            return None;
         }
         let last_byte = self.buf.last().unwrap();
         let result = get_bit(*last_byte, (self.len - 1) % 8);
@@ -58,7 +61,10 @@ impl BitVec {
         self.buf.capacity() * 8
     }
 
-    fn get_start_end_bit_index_from_range<T: RangeBounds<usize>>(&self, range: &T) -> (usize, usize) {
+    fn get_start_end_bit_index_from_range<T: RangeBounds<usize>>(
+        &self,
+        range: &T,
+    ) -> (usize, usize) {
         let start_bit_index = match range.start_bound() {
             std::ops::Bound::Included(&s) => s,
             std::ops::Bound::Excluded(s) => s + 1,
@@ -79,7 +85,11 @@ impl BitVec {
         let end_byte = end_bit_index / 8;
         let bit_len = end_bit_index - start_bit_index;
         //println!("returning slice with start byte {}, end_byte {}, start_bit_index {}, end_bit_index {}", start_byte, end_byte, start_bit_index, start_bit_index + bit_len);
-        BitSlice::new(&self.buf[start_byte..=end_byte], start_bit_index, start_bit_index + bit_len)
+        BitSlice::new(
+            &self.buf[start_byte..=end_byte],
+            start_bit_index,
+            start_bit_index + bit_len,
+        )
     }
 
     pub fn get_slice_mut<T: RangeBounds<usize>>(&mut self, range: T) -> BitSliceMut<'_> {
@@ -91,7 +101,11 @@ impl BitVec {
         // We now need to adjust the start_bit_index to be relative to the start_byte
         let start_bit_index = start_bit_index - start_byte * 8;
         //println!("returning slice with start byte {}, end_byte {}, start_bit_index {}, end_bit_index {}", start_byte, end_byte, start_bit_index, start_bit_index + bit_len);
-        BitSliceMut::new(&mut self.buf[start_byte..=end_byte], start_bit_index, start_bit_index + bit_len)
+        BitSliceMut::new(
+            &mut self.buf[start_byte..=end_byte],
+            start_bit_index,
+            start_bit_index + bit_len,
+        )
     }
 }
 
