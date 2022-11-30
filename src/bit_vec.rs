@@ -61,14 +61,9 @@ impl BitVec {
         self.len
     }
 
-    //pub fn get_slice(&self, range: Range<usize>) -> BitSlice<'_> {
-    //    println!("getting slice for range {:?}", range);
-    //    let start_byte = range.start / 8;
-    //    let end_byte = (range.end - 1) / 8;
-    //    let start_bit = range.start % 8;
-    //    println!("start_byte: {}, end_byte: {}, start_bit: {}, end_bit: {}", start_byte, end_byte, start_bit, start_bit + range.end - start_bit - 1);
-    //    BitSlice::new(&self.buf[start_byte..=end_byte], start_bit, start_bit + range.end - start_bit - 1)
-    //}
+    pub fn capacity(&self) -> usize {
+        self.buf.capacity() * 8
+    }
 
     pub fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> BitSlice<'_> {
         println!("getting slice with bounds: {:?} {:?}", range.start_bound(), range.end_bound());
