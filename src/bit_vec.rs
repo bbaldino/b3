@@ -117,6 +117,9 @@ pub fn from_elem(elem: u8, n: usize) -> BitVec {
     vec
 }
 
+/// Create a BitVec using array style syntax, either:
+/// bitvec!(0, 1, 0, ...);
+/// bitvec!(0; 10);
 // TODO: would be nice to expand this to validate only 0s and 1s were passed
 #[macro_export]
 macro_rules! bitvec {
@@ -128,6 +131,7 @@ macro_rules! bitvec {
     }
 }
 
+/// Create a [u1; N] array
 #[macro_export]
 macro_rules! bitarray {
     (0$(, $rest:tt)*) => {

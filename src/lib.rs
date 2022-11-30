@@ -8,5 +8,6 @@ pub mod slice;
 mod util;
 pub mod bit_read_exts;
 pub mod bit_write;
+pub mod byte_order;
 
 pub use ux::*;

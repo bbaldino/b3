@@ -66,7 +66,7 @@ mod tests {
 
     use ux::u1;
 
-    use crate::{bitvec, bit_vec::into_bitvec, bitarray};
+    use crate::{bitvec, bitarray};
 
     #[test]
     fn test_read() {
