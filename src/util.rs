@@ -36,5 +36,5 @@ pub(crate) fn get_bit(byte: u8, bit_index: usize) -> u1 {
         _ => unreachable!()
     };
     let result = byte & mask;
-    u1::new(result >> 7 - bit_index)
+    u1::new(result >> (7 - bit_index))
 }

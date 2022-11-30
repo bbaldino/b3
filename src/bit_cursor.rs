@@ -26,9 +26,9 @@ impl BitRead for BitCursor {
         // Read buf.len() bits from pos to pos + buf.len() into buf
         let slice = self.inner.get_slice(self.pos..self.pos + buf.len());
         let mut bits_read = 0usize;
-        for i in 0..buf.len() {
-            buf[i] = slice.at(i);
-            bits_read += 1
+        for (i, bit) in buf.iter_mut().enumerate() {
+            *bit = slice.at(i);
+            bits_read += 1;
         }
         self.pos += bits_read;
         Ok(bits_read)

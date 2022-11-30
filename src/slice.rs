@@ -5,7 +5,7 @@ use crate::{util::{get_bit, set_bit}, bit_read::BitRead};
 
 // TODO: Deriving PartialEq here requires that _all_ of 'buf' matches, but really we only care that
 // the bits from start_bit_index to end_bit_index match
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct BitSlice<'a> {
     buf: &'a [u8],
     start_bit_index: usize,
@@ -13,7 +13,7 @@ pub struct BitSlice<'a> {
 }
 
 impl BitSlice<'_> {
-    pub(crate) fn new<'a>(buf: &'a [u8], start_bit_index: usize, end_bit_index: usize) -> BitSlice<'a> {
+    pub(crate) fn new(buf: &[u8], start_bit_index: usize, end_bit_index: usize) -> BitSlice {
         BitSlice {
             buf,
             start_bit_index,
@@ -38,8 +38,9 @@ impl BitSlice<'_> {
 impl BitRead for BitSlice<'_> {
     fn read(&mut self, buf: &mut [u1]) -> std::io::Result<usize> {
         let n = self.len().min(buf.len());
-        for i in 0..n {
-            buf[i] = self.at(i);
+        // TODO: optimize...
+        for (i, bit) in buf.iter_mut().enumerate().take(n) {
+            *bit = self.at(i);
         }
         Ok(n)
     }
@@ -50,8 +51,8 @@ impl BitRead for BitSlice<'_> {
         }
 
         // TODO: optimize...
-        for i in 0..buf.len() {
-            buf[i] = self.at(i);
+        for (i, bit) in buf.iter_mut().enumerate() {
+            *bit = self.at(i);
         }
 
         Ok(())
@@ -65,7 +66,7 @@ pub struct BitSliceMut<'a> {
 }
 
 impl BitSliceMut<'_> {
-    pub(crate) fn new<'a>(buf: &'a mut [u8], start_bit_index: usize, end_bit_index: usize) -> BitSliceMut<'a> {
+    pub(crate) fn new(buf: &mut [u8], start_bit_index: usize, end_bit_index: usize) -> BitSliceMut<'_> {
         BitSliceMut {
             buf,
             start_bit_index,

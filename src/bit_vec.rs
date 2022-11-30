@@ -20,18 +20,15 @@ impl BitVec {
 
     pub fn with_capacity(capacity: usize) -> BitVec {
         BitVec {
-            buf: Vec::with_capacity(capacity + 7 / 8),
+            buf: Vec::with_capacity((capacity + 7) / 8),
             len: 0
         }
     }
 
     pub fn push<T: Into<u1>>(&mut self, value: T) {
         // 'allocate' another byte if needed
-        match self.len % 8 {
-            0 => {
-                self.buf.push(0);
-            },
-            _ => {}
+        if self.len % 8 == 0 {
+            self.buf.push(0);
         }
         let mut last_byte = self.buf.last_mut().unwrap();
         set_bit(&mut last_byte, self.len % 8, value.into());
@@ -46,11 +43,8 @@ impl BitVec {
         let result = get_bit(*last_byte, (self.len - 1) % 8);
 
         self.len -= 1;
-        match self.len % 8 {
-            0 => {
-                self.buf.pop();
-            },
-            _ => {}
+        if self.len % 8 == 0 {
+            self.buf.pop();
         }
 
         Some(result)
@@ -99,9 +93,15 @@ impl BitVec {
     }
 }
 
+impl Default for BitVec {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AsRef<BitVec> for BitVec {
     fn as_ref(&self) -> &BitVec {
-        &self
+        self
     }
 }
 
