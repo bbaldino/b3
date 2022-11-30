@@ -20,11 +20,28 @@ macro_rules! impl_bit_read {
     };
 }
 
+/// Macro for generating BitReadExts read methods for types larger than 8 bits (which require a
+/// ByteOrder parameter).
+/// TODO: this doesn't work, perhaps because paste! doesn't like the nested brackets.
+/// See https://github.com/dtolnay/paste/issues/90
+macro_rules! impl_bit_read_bo {
+    ($type:ty, $size_bits:expr) => {
+        paste! {
+            fn [<read_ $type>]<T: ByteOrder>(&mut self) -> $type {
+                let mut buf = [u1::new(0); $size_bits];
+                self.read_exact(&mut buf).unwrap();
+                <T>::read_u9(&buf)
+                //[< <T>::read_ $type>](&buf)
+            }
+        }
+    };
+}
+
 /// Generate a LittleEndian read operation from a buffer for the uX types
 macro_rules! impl_read_le {
     ($type:ty, $size_bits:expr) => {
         paste! {
-            fn [<read_ $type>](&self, buf: &[u1; $size_bits]) -> $type {
+            fn [<read_ $type>](buf: &[u1; $size_bits]) -> $type {
                 let mut val = <$type>::new(0);
                 if $size_bits > 32 {
                     unimplemented!("Only uX types up to u32 supported");
@@ -61,7 +78,7 @@ macro_rules! impl_read_le {
 macro_rules! def_bo_read {
     ($type:ty, $size_bits:expr) => {
         paste! {
-            fn [<read_ $type>](&self, buf: &[u1; $size_bits]) -> $type;
+            fn [<read_ $type>](buf: &[u1; $size_bits]) -> $type;
         }
     };
 }
@@ -89,6 +106,12 @@ pub trait BitReadExts : BitRead {
     impl_bit_read!(u3, 3);
     impl_bit_read!(u4, 4);
     impl_bit_read!(u5, 5);
+
+    fn read_u9<T: ByteOrder>(&mut self) -> u9 {
+        let mut buf = [u1::new(0); 9];
+        self.read_exact(&mut buf).unwrap();
+        <T>::read_u9(&buf)
+    }
 }
 
 impl<T> BitReadExts for T where T: BitRead {}

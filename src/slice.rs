@@ -1,6 +1,6 @@
 use ux::u1;
 
-use crate::{util::get_bit, bit_read::BitRead};
+use crate::{util::{get_bit, set_bit}, bit_read::BitRead};
 
 
 // TODO: Deriving PartialEq here requires that _all_ of 'buf' matches, but really we only care that
@@ -55,5 +55,34 @@ impl BitRead for BitSlice<'_> {
         }
 
         Ok(())
+    }
+}
+
+pub struct BitSliceMut<'a> {
+    buf: &'a mut [u8],
+    start_bit_index: usize,
+    end_bit_index: usize
+}
+
+impl BitSliceMut<'_> {
+    pub(crate) fn new<'a>(buf: &'a mut [u8], start_bit_index: usize, end_bit_index: usize) -> BitSliceMut<'a> {
+        BitSliceMut {
+            buf,
+            start_bit_index,
+            end_bit_index
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        // Start and end are both inclusive, so add 1
+        self.end_bit_index - self.start_bit_index + 1
+    }
+
+    pub fn set(&self, index: usize, value: u1) {
+        assert!(index <= self.end_bit_index);
+        let bit_pos = self.start_bit_index + index;
+        let byte_pos = bit_pos / 8;
+        let mut byte = self.buf[byte_pos];
+        set_bit(&mut byte, bit_pos, value);
     }
 }

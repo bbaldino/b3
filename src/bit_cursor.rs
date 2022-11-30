@@ -1,4 +1,6 @@
-use crate::{bit_vec::BitVec, bit_read::BitRead, slice::BitSlice};
+use ux::u1;
+
+use crate::{bit_vec::BitVec, bit_read::BitRead, slice::BitSlice, bit_write::BitWrite};
 
 pub struct BitCursor {
     inner: BitVec,
@@ -20,7 +22,7 @@ impl BitCursor {
 }
 
 impl BitRead for BitCursor {
-    fn read(&mut self, buf: &mut [ux::u1]) -> std::io::Result<usize> {
+    fn read(&mut self, buf: &mut [u1]) -> std::io::Result<usize> {
         // Read buf.len() bits from pos to pos + buf.len() into buf
         let slice = self.inner.get_slice(self.pos..self.pos + buf.len());
         let mut bits_read = 0usize;
@@ -32,12 +34,18 @@ impl BitRead for BitCursor {
         Ok(bits_read)
     }
 
-    fn read_exact(&mut self, buf: &mut[ux::u1]) -> std::io::Result<()> {
+    fn read_exact(&mut self, buf: &mut[u1]) -> std::io::Result<()> {
         let n = buf.len();
         BitRead::read_exact(&mut self.remaining_slice(), buf)?;
         self.pos += n;
 
         Ok(())
+    }
+}
+
+impl BitWrite for BitCursor {
+    fn write(&mut self, buf: &[u1]) -> std::io::Result<usize> {
+        todo!()
     }
 }
 
