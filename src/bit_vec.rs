@@ -30,8 +30,8 @@ impl BitVec {
         if self.len % 8 == 0 {
             self.buf.push(0);
         }
-        let mut last_byte = self.buf.last_mut().unwrap();
-        set_bit(&mut last_byte, self.len % 8, value.into());
+        let last_byte = self.buf.last_mut().unwrap();
+        set_bit(last_byte, self.len % 8, value.into());
         self.len += 1;
     }
 
@@ -73,22 +73,24 @@ impl BitVec {
     }
 
     pub fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> BitSlice<'_> {
-        println!("getting slice with bounds: {:?} {:?}", range.start_bound(), range.end_bound());
+        //println!("getting slice with bounds: {:?} {:?}", range.start_bound(), range.end_bound());
         let (start_bit_index, end_bit_index) = self.get_start_end_bit_index_from_range(&range);
         let start_byte = start_bit_index / 8;
         let end_byte = end_bit_index / 8;
         let bit_len = end_bit_index - start_bit_index;
-        println!("returning slice with start byte {}, end_byte {}, start_bit_index {}, end_bit_index {}", start_byte, end_byte, start_bit_index, start_bit_index + bit_len);
+        //println!("returning slice with start byte {}, end_byte {}, start_bit_index {}, end_bit_index {}", start_byte, end_byte, start_bit_index, start_bit_index + bit_len);
         BitSlice::new(&self.buf[start_byte..=end_byte], start_bit_index, start_bit_index + bit_len)
     }
 
     pub fn get_slice_mut<T: RangeBounds<usize>>(&mut self, range: T) -> BitSliceMut<'_> {
-        println!("getting slice with bounds: {:?} {:?}", range.start_bound(), range.end_bound());
+        //println!("getting slice with bounds: {:?} {:?}", range.start_bound(), range.end_bound());
         let (start_bit_index, end_bit_index) = self.get_start_end_bit_index_from_range(&range);
         let start_byte = start_bit_index / 8;
         let end_byte = end_bit_index / 8;
         let bit_len = end_bit_index - start_bit_index;
-        println!("returning slice with start byte {}, end_byte {}, start_bit_index {}, end_bit_index {}", start_byte, end_byte, start_bit_index, start_bit_index + bit_len);
+        // We now need to adjust the start_bit_index to be relative to the start_byte
+        let start_bit_index = start_bit_index - start_byte * 8;
+        //println!("returning slice with start byte {}, end_byte {}, start_bit_index {}, end_bit_index {}", start_byte, end_byte, start_bit_index, start_bit_index + bit_len);
         BitSliceMut::new(&mut self.buf[start_byte..=end_byte], start_bit_index, start_bit_index + bit_len)
     }
 }
@@ -96,12 +98,6 @@ impl BitVec {
 impl Default for BitVec {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-impl AsRef<BitVec> for BitVec {
-    fn as_ref(&self) -> &BitVec {
-        self
     }
 }
 
@@ -130,6 +126,25 @@ macro_rules! bitvec {
     ($elem:expr; $n:expr) => {
         $crate::bit_vec::from_elem($elem, $n)
     }
+}
+
+#[macro_export]
+macro_rules! bitarray {
+    (0$(, $rest:tt)*) => {
+        bitarray!(@internal [u1::new(0)] $($rest),*)
+    };
+    (1$(, $rest:tt)*) => {
+        bitarray!(@internal [u1::new(1)] $($rest),*)
+    };
+    (@internal [$($done:expr$(,)?)+] 0$(, $rest:tt)*) => {
+        bitarray!(@internal [$($done)*, u1::new(0)] $($rest),*)
+    };
+    (@internal [$($done:expr$(,)?)+] 1$(, $rest:tt)*) => {
+        bitarray!(@internal [$($done)*, u1::new(1)] $($rest),*)
+    };
+    (@internal [$($done:expr$(,)?)+]) => {
+        [$($done, )*]
+    };
 }
 
 #[cfg(test)]
@@ -170,20 +185,12 @@ mod tests {
         assert_eq!(slice, BitSlice::new(&[0b00000000, 0b11111111], 3, 10));
     }
 
-    //#[test]
-    //fn test_bit_slice_mut() {
-    //    let mut vec = bitvec!(0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0);
-    //    let slice = vec.get_slice_mut(7..15);
-    //    assert_eq!(slice.len(), 8);
-    //    assert_eq!(slice.at(0), u1::new(0));
-    //    assert_eq!(slice.at(1), u1::new(1));
-    //    assert_eq!(slice.at(2), u1::new(1));
-    //    assert_eq!(slice.at(3), u1::new(1));
-    //    assert_eq!(slice.at(4), u1::new(1));
-    //    assert_eq!(slice.at(5), u1::new(1));
-    //    assert_eq!(slice.at(6), u1::new(1));
-    //    assert_eq!(slice.at(7), u1::new(1));
-    //    assert_eq!(slice.at(8), u1::new(1));
-    //    
-    //}
+    #[test]
+    fn test_bit_slice_mut() {
+        let mut vec = bitvec!(0);
+        let mut slice = vec.get_slice_mut(..);
+        assert_eq!(slice.len(), 1);
+        slice.set(0, u1::new(1));
+        assert_eq!(slice.at(0), u1::new(1));
+    }
 }

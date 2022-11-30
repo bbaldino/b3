@@ -1,7 +1,8 @@
 use ux::u1;
 
-use crate::{bit_vec::BitVec, bit_read::BitRead, slice::BitSlice, bit_write::BitWrite};
+use crate::{bit_vec::BitVec, bit_read::BitRead, slice::{BitSlice, BitSliceMut}, bit_write::BitWrite};
 
+#[derive(Debug)]
 pub struct BitCursor {
     inner: BitVec,
     pos: usize,
@@ -15,23 +16,28 @@ impl BitCursor {
         }
     }
 
+    pub fn into_inner(self) -> BitVec {
+        self.inner
+    }
+
     pub fn remaining_slice(&self) -> BitSlice<'_> {
-        let len = self.pos.min(self.inner.as_ref().len());
-        self.inner.as_ref().get_slice(len..)
+        let len = self.pos.min(self.inner.len());
+        self.inner.get_slice(len..)
+    }
+
+    pub fn remaining_slice_mut(&mut self) -> BitSliceMut<'_> {
+        let len = self.pos.min(self.inner.len());
+        self.inner.get_slice_mut(len..)
     }
 }
 
 impl BitRead for BitCursor {
     fn read(&mut self, buf: &mut [u1]) -> std::io::Result<usize> {
         // Read buf.len() bits from pos to pos + buf.len() into buf
-        let slice = self.inner.get_slice(self.pos..self.pos + buf.len());
-        let mut bits_read = 0usize;
-        for (i, bit) in buf.iter_mut().enumerate() {
-            *bit = slice.at(i);
-            bits_read += 1;
-        }
-        self.pos += bits_read;
-        Ok(bits_read)
+        let n = self.remaining_slice().len().min(buf.len());
+        BitRead::read(&mut self.remaining_slice(), buf)?;
+        self.pos += n;
+        Ok(n)
     }
 
     fn read_exact(&mut self, buf: &mut[u1]) -> std::io::Result<()> {
@@ -45,21 +51,25 @@ impl BitRead for BitCursor {
 
 impl BitWrite for BitCursor {
     fn write(&mut self, buf: &[u1]) -> std::io::Result<usize> {
-        todo!()
+        let n = self.remaining_slice().len().min(buf.len());
+        println!("Cursor writing {} bits, curr pos = {}, len = {}", buf.len(), self.pos, self.inner.len());
+        BitWrite::write(&mut self.remaining_slice_mut(), buf)?;
+        self.pos += n;
+        Ok(n)
     }
 }
 
 
 #[cfg(test)]
 mod tests {
-    use ux::u1;
-
-    use crate::bitvec;
-
     use super::*;
 
+    use ux::u1;
+
+    use crate::{bitvec, bit_vec::into_bitvec, bitarray};
+
     #[test]
-    fn test_name() {
+    fn test_read() {
         let vec = bitvec!(1, 1, 1, 1, 0, 0, 0, 0);
         let mut cursor = BitCursor::new(vec);
         let mut read_buf = [u1::new(0); 2];
@@ -75,5 +85,18 @@ mod tests {
 
         assert_eq!(cursor.read(&mut read_buf).unwrap(), 2);
         assert_eq!(read_buf, [u1::new(0), u1::new(0)]);
+    }
+
+    #[test]
+    fn test_write() {
+        let vec = bitvec!(0; 16);
+        let mut cursor = BitCursor::new(vec);
+       
+        assert!(cursor.write(&bitarray!(0, 1, 1, 0)).is_ok());
+        assert!(cursor.write(&bitarray!(0, 1, 1, 0)).is_ok());
+        assert!(cursor.write(&bitarray!(0, 1, 1, 0)).is_ok());
+        assert!(cursor.write(&bitarray!(0, 1, 1, 0)).is_ok());
+
+        assert_eq!(cursor.into_inner().get_slice(..), &bitarray!(0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0)[..]);
     }
 }

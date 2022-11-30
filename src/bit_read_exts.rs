@@ -107,6 +107,7 @@ pub trait BitReadExts : BitRead {
     impl_bit_read!(u4, 4);
     impl_bit_read!(u5, 5);
 
+    // See note on impl_bit_read_bo as to why we can't use the macro
     fn read_u9<T: ByteOrder>(&mut self) -> u9 {
         let mut buf = [u1::new(0); 9];
         self.read_exact(&mut buf).unwrap();

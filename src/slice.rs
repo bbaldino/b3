@@ -1,6 +1,6 @@
 use ux::u1;
 
-use crate::{util::{get_bit, set_bit}, bit_read::BitRead};
+use crate::{util::{get_bit, set_bit}, bit_read::BitRead, bit_write::BitWrite};
 
 
 // TODO: Deriving PartialEq here requires that _all_ of 'buf' matches, but really we only care that
@@ -59,6 +59,21 @@ impl BitRead for BitSlice<'_> {
     }
 }
 
+impl PartialEq<&[u1]> for BitSlice<'_> {
+    fn eq(&self, other: &&[u1]) -> bool {
+        if self.len() != other.len() {
+            return false;
+        }
+        for (i, &bit) in other.iter().enumerate() {
+            if self.at(i) != bit {
+                return false;
+            }
+        }
+        true
+    }
+}
+
+#[derive(Debug)]
 pub struct BitSliceMut<'a> {
     buf: &'a mut [u8],
     start_bit_index: usize,
@@ -79,11 +94,29 @@ impl BitSliceMut<'_> {
         self.end_bit_index - self.start_bit_index + 1
     }
 
-    pub fn set(&self, index: usize, value: u1) {
+    pub fn at(&self, index: usize) -> u1 {
         assert!(index <= self.end_bit_index);
         let bit_pos = self.start_bit_index + index;
         let byte_pos = bit_pos / 8;
-        let mut byte = self.buf[byte_pos];
+        let byte = self.buf[byte_pos];
+        get_bit(byte, bit_pos % 8)
+    }
+
+    pub fn set(&mut self, index: usize, value: u1) {
+        assert!(index <= self.end_bit_index);
+        let bit_pos = self.start_bit_index + index;
+        let byte_pos = bit_pos / 8;
+        let mut byte = &mut self.buf[byte_pos];
         set_bit(&mut byte, bit_pos, value);
+    }
+}
+
+impl BitWrite for BitSliceMut<'_> {
+    fn write(&mut self, buf: &[u1]) -> std::io::Result<usize> {
+        let n = self.len().min(buf.len());
+        for (i, bit) in buf.iter().enumerate().take(n) {
+            self.set(i, *bit);
+        }
+        Ok(n)
     }
 }
