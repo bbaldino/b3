@@ -10,4 +10,4 @@ pub mod byte_order;
 pub mod slice;
 mod util;
 
-pub use ux::*;
+pub use ux;
