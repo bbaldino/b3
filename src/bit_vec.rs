@@ -53,6 +53,17 @@ impl BitVec {
         Some(result)
     }
 
+    pub fn at(&self, index: usize) -> u1 {
+        assert!(index < self.len());
+        let byte_pos = index / 8;
+        let bit_index = index % 8;
+        get_bit(self.buf[byte_pos], bit_index)
+    }
+
+    pub fn iter(&self) -> BitVecIterator<'_> {
+        BitVecIterator { vec: self, bit_pos: 0 }
+    }
+
     pub fn len(&self) -> usize {
         self.len
     }
@@ -165,6 +176,24 @@ macro_rules! bitarray {
     };
 }
 
+pub struct BitVecIterator<'a> {
+    vec: &'a BitVec,
+    bit_pos: usize
+}
+
+impl Iterator for BitVecIterator<'_> {
+    type Item = u1;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.bit_pos == self.vec.len() {
+            return None;
+        }
+        let val = self.vec.at(self.bit_pos);
+        self.bit_pos += 1;
+        Some(val)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -177,6 +206,7 @@ mod tests {
             vec.push(u1::new(1));
             assert_eq!(vec.len(), i);
         }
+        assert!(vec.iter().all(|b| b == u1::new(1)));
     }
 
     #[test]
