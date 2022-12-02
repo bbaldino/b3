@@ -143,16 +143,16 @@ macro_rules! bitvec {
 #[macro_export]
 macro_rules! bitarray {
     (0$(, $rest:tt)*) => {
-        bitarray!(@internal [u1::new(0)] $($rest),*)
+        bitarray!(@internal [::ux::u1::new(0)] $($rest),*)
     };
     (1$(, $rest:tt)*) => {
-        bitarray!(@internal [u1::new(1)] $($rest),*)
+        bitarray!(@internal [::ux::u1::new(1)] $($rest),*)
     };
     (@internal [$($done:expr$(,)?)+] 0$(, $rest:tt)*) => {
-        bitarray!(@internal [$($done)*, u1::new(0)] $($rest),*)
+        bitarray!(@internal [$($done)*, ::ux::u1::new(0)] $($rest),*)
     };
     (@internal [$($done:expr$(,)?)+] 1$(, $rest:tt)*) => {
-        bitarray!(@internal [$($done)*, u1::new(1)] $($rest),*)
+        bitarray!(@internal [$($done)*, ::ux::u1::new(1)] $($rest),*)
     };
     (@internal [$($done:expr$(,)?)+]) => {
         [$($done, )*]
