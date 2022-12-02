@@ -4,7 +4,7 @@ use ux::*;
 
 use crate::{
     slice::{BitSlice, BitSliceMut},
-    util::{get_bit, set_bit},
+    util::{get_bit, set_bit, get_start_end_bit_index_from_range},
 };
 
 #[derive(Debug)]
@@ -72,26 +72,9 @@ impl BitVec {
         self.buf.capacity() * 8
     }
 
-    fn get_start_end_bit_index_from_range<T: RangeBounds<usize>>(
-        &self,
-        range: &T,
-    ) -> (usize, usize) {
-        let start_bit_index = match range.start_bound() {
-            std::ops::Bound::Included(&s) => s,
-            std::ops::Bound::Excluded(s) => s + 1,
-            std::ops::Bound::Unbounded => 0,
-        };
-        let end_bit_index = match range.end_bound() {
-            std::ops::Bound::Included(&s) => s,
-            std::ops::Bound::Excluded(s) => s - 1,
-            std::ops::Bound::Unbounded => self.len() - 1,
-        };
-        (start_bit_index, end_bit_index)
-    }
-
     pub fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> BitSlice<'_> {
         //println!("getting slice with bounds: {:?} {:?}", range.start_bound(), range.end_bound());
-        let (start_bit_index, end_bit_index) = self.get_start_end_bit_index_from_range(&range);
+        let (start_bit_index, end_bit_index) = get_start_end_bit_index_from_range(&range, self.len());
         let start_byte = start_bit_index / 8;
         let end_byte = end_bit_index / 8;
         let bit_len = end_bit_index - start_bit_index;
@@ -105,7 +88,7 @@ impl BitVec {
 
     pub fn get_slice_mut<T: RangeBounds<usize>>(&mut self, range: T) -> BitSliceMut<'_> {
         //println!("getting slice with bounds: {:?} {:?}", range.start_bound(), range.end_bound());
-        let (start_bit_index, end_bit_index) = self.get_start_end_bit_index_from_range(&range);
+        let (start_bit_index, end_bit_index) = get_start_end_bit_index_from_range(&range, self.len());
         let start_byte = start_bit_index / 8;
         let end_byte = end_bit_index / 8;
         let bit_len = end_bit_index - start_bit_index;

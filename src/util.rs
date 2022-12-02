@@ -1,3 +1,5 @@
+use std::ops::RangeBounds;
+
 use ux::u1;
 
 /// Set the |bit_index| bit of |byte| to |value|
@@ -37,4 +39,23 @@ pub(crate) fn get_bit(byte: u8, bit_index: usize) -> u1 {
     };
     let result = byte & mask;
     u1::new(result >> (7 - bit_index))
+}
+
+/// Get the start and end bit indices from the given |range|, where |len| represents the length of
+/// the item being indexed.
+pub(crate) fn get_start_end_bit_index_from_range<T: RangeBounds<usize>>(
+    range: &T,
+    len: usize
+) -> (usize, usize) {
+    let start_bit_index = match range.start_bound() {
+        std::ops::Bound::Included(&s) => s,
+        std::ops::Bound::Excluded(s) => s + 1,
+        std::ops::Bound::Unbounded => 0,
+    };
+    let end_bit_index = match range.end_bound() {
+        std::ops::Bound::Included(&s) => s,
+        std::ops::Bound::Excluded(s) => s - 1,
+        std::ops::Bound::Unbounded => len - 1,
+    };
+    (start_bit_index, end_bit_index)
 }
