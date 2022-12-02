@@ -20,6 +20,7 @@ where
     val
 }
 
+// TODO: change to return Result
 
 pub trait BitReadExts: BitRead {
     fn read_u1(&mut self) -> u1 {

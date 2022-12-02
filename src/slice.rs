@@ -116,7 +116,10 @@ impl BitSliceMut<'_> {
         assert!(index <= self.end_bit_index);
         let bit_pos = self.start_bit_index + index;
         let byte_pos = bit_pos / 8;
+        // Now make bit_pos relative to the byte
+        let bit_pos = bit_pos % 8;
         let mut byte = &mut self.buf[byte_pos];
+        println!("index = {}, byte_pos = {}, bit_pos = {}", index, byte_pos, bit_pos);
         set_bit(&mut byte, bit_pos, value);
     }
 }
@@ -128,5 +131,20 @@ impl BitWrite for BitSliceMut<'_> {
             self.set(i, *bit);
         }
         Ok(n)
+    }
+
+    fn write_all(&mut self, buf: &[u1]) -> std::io::Result<()> {
+        if buf.len() > self.len() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::UnexpectedEof,
+                "failed to write whole buffer",
+            ));
+        }
+
+        // TODO: optimize...
+        for (i, bit) in buf.iter().enumerate() {
+            self.set(i, *bit);
+        }
+        Ok(())
     }
 }

@@ -9,5 +9,6 @@ pub mod bit_write;
 pub mod byte_order;
 pub mod slice;
 mod util;
+pub mod bit_write_exts;
 
 pub use ux;

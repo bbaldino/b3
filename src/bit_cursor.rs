@@ -54,15 +54,16 @@ impl BitRead for BitCursor {
 impl BitWrite for BitCursor {
     fn write(&mut self, buf: &[u1]) -> std::io::Result<usize> {
         let n = self.remaining_slice().len().min(buf.len());
-        println!(
-            "Cursor writing {} bits, curr pos = {}, len = {}",
-            buf.len(),
-            self.pos,
-            self.inner.len()
-        );
         BitWrite::write(&mut self.remaining_slice_mut(), buf)?;
         self.pos += n;
         Ok(n)
+    }
+
+    fn write_all(&mut self, buf: &[u1]) -> std::io::Result<()> {
+        let n = self.remaining_slice().len().min(buf.len());
+        BitWrite::write_all(&mut self.remaining_slice_mut(), buf)?;
+        self.pos += n;
+        Ok(())
     }
 }
 
