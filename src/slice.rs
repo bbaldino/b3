@@ -1,9 +1,11 @@
+use std::ops::RangeBounds;
+
 use ux::u1;
 
 use crate::{
     bit_read::BitRead,
     bit_write::BitWrite,
-    util::{get_bit, set_bit},
+    util::{get_bit, set_bit, get_start_end_bit_index_from_range},
 };
 
 // TODO: Deriving PartialEq here requires that _all_ of 'buf' matches, but really we only care that
@@ -35,6 +37,25 @@ impl BitSlice<'_> {
         let byte_pos = bit_pos / 8;
         let byte = self.buf[byte_pos];
         get_bit(byte, bit_pos % 8)
+    }
+
+    pub fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> BitSlice<'_> {
+        let (start_bit_index, end_bit_index) = get_start_end_bit_index_from_range(&range, self.len());
+        let bit_len = end_bit_index - start_bit_index;
+        // Adjust start and end bit indices to be relative to self.start_bit_index
+        let start_bit_index = start_bit_index + self.start_bit_index;
+        let end_bit_index = start_bit_index + bit_len;
+        
+        let start_byte = start_bit_index / 8;
+        let end_byte = end_bit_index / 8;
+        // We now need to adjust the start_bit_index to be relative to the start_byte
+        let start_bit_index = start_bit_index - start_byte * 8;
+        //println!("returning slice with start byte {}, end_byte {}, start_bit_index {}, end_bit_index {}", start_byte, end_byte, start_bit_index, start_bit_index + bit_len);
+        BitSlice::new(
+            &self.buf[start_byte..=end_byte],
+            start_bit_index,
+            start_bit_index + bit_len,
+        )
     }
 }
 
@@ -122,6 +143,44 @@ impl BitSliceMut<'_> {
         println!("index = {}, byte_pos = {}, bit_pos = {}", index, byte_pos, bit_pos);
         set_bit(&mut byte, bit_pos, value);
     }
+
+    pub fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> BitSlice<'_> {
+        let (start_bit_index, end_bit_index) = get_start_end_bit_index_from_range(&range, self.len());
+        let bit_len = end_bit_index - start_bit_index;
+        // Adjust start and end bit indices to be relative to self.start_bit_index
+        let start_bit_index = start_bit_index + self.start_bit_index;
+        let end_bit_index = start_bit_index + bit_len;
+        
+        let start_byte = start_bit_index / 8;
+        let end_byte = end_bit_index / 8;
+        // We now need to adjust the start_bit_index to be relative to the start_byte
+        let start_bit_index = start_bit_index - start_byte * 8;
+        //println!("returning slice with start byte {}, end_byte {}, start_bit_index {}, end_bit_index {}", start_byte, end_byte, start_bit_index, start_bit_index + bit_len);
+        BitSlice::new(
+            &self.buf[start_byte..=end_byte],
+            start_bit_index,
+            start_bit_index + bit_len,
+        )
+    }
+
+    pub fn get_slice_mut<T: RangeBounds<usize>>(&mut self, range: T) -> BitSliceMut<'_> {
+        let (start_bit_index, end_bit_index) = get_start_end_bit_index_from_range(&range, self.len());
+        let bit_len = end_bit_index - start_bit_index;
+        // Adjust start and end bit indices to be relative to self.start_bit_index
+        let start_bit_index = start_bit_index + self.start_bit_index;
+        let end_bit_index = start_bit_index + bit_len;
+        
+        let start_byte = start_bit_index / 8;
+        let end_byte = end_bit_index / 8;
+        // We now need to adjust the start_bit_index to be relative to the start_byte
+        let start_bit_index = start_bit_index - start_byte * 8;
+        //println!("returning slice with start byte {}, end_byte {}, start_bit_index {}, end_bit_index {}", start_byte, end_byte, start_bit_index, start_bit_index + bit_len);
+        BitSliceMut::new(
+            &mut self.buf[start_byte..=end_byte],
+            start_bit_index,
+            start_bit_index + bit_len,
+        )
+    }
 }
 
 impl BitWrite for BitSliceMut<'_> {
@@ -146,5 +205,47 @@ impl BitWrite for BitSliceMut<'_> {
             self.set(i, *bit);
         }
         Ok(())
+    }
+}
+
+impl PartialEq<&[u1]> for BitSliceMut<'_> {
+    fn eq(&self, other: &&[u1]) -> bool {
+        PartialEq::eq(&self.get_slice(..), other)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use ux::u1;
+
+    use crate::{bitvec, bitarray};
+
+    #[test]
+    fn get_slice_from_bit_slice() {
+        let vec = bitvec!(1, 0, 1, 0, 1, 0);
+        let slice_one = vec.get_slice(1..);
+        let slice_two = slice_one.get_slice(1..);
+        assert_eq!(slice_two.len(), 4);
+        assert_eq!(slice_two, &bitarray!(1, 0, 1, 0)[..]);
+    }
+
+    #[test]
+    fn get_slice_from_bit_slice_mut() {
+        let mut vec = bitvec!(1, 0, 1, 0, 1, 0);
+        let slice_one = vec.get_slice_mut(1..);
+        let slice_two = slice_one.get_slice(1..);
+        assert_eq!(slice_two.len(), 4);
+        assert_eq!(slice_two, &bitarray!(1, 0, 1, 0)[..]);
+    }
+
+    #[test]
+    fn get_slice_mut_from_bit_slice_mut() {
+        let mut vec = bitvec!(1, 0, 1, 0, 1, 0);
+        let mut slice_one = vec.get_slice_mut(1..);
+        let mut slice_two = slice_one.get_slice_mut(1..);
+        assert_eq!(slice_two.len(), 4);
+        assert_eq!(slice_two, &bitarray!(1, 0, 1, 0)[..]);
+        slice_two.set(0, u1::new(0));
+        assert_eq!(slice_one.at(1), u1::new(0));
     }
 }
