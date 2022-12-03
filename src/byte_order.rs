@@ -41,14 +41,6 @@ macro_rules! impl_read_le {
 }
 
 pub trait ByteOrder {
-    fn read_u1(buf: &[u1; 1]) -> u1;
-    fn read_u2(buf: &[u1; 2]) -> u2;
-    fn read_u3(buf: &[u1; 3]) -> u3;
-    fn read_u4(buf: &[u1; 4]) -> u4;
-    fn read_u5(buf: &[u1; 5]) -> u5;
-    fn read_u6(buf: &[u1; 6]) -> u6;
-    fn read_u7(buf: &[u1; 7]) -> u7;
-    fn read_u8(buf: &[u1; 8]) -> u8;
     fn read_u9(buf: &[u1; 9]) -> u9;
     fn read_u10(buf: &[u1; 10]) -> u10;
     fn read_u11(buf: &[u1; 11]) -> u11;
@@ -82,14 +74,6 @@ pub struct LittleEndian {}
 pub type NetworkOrder = BigEndian;
 
 impl ByteOrder for LittleEndian {
-    impl_read_le!(u1, 1);
-    impl_read_le!(u2, 2);
-    impl_read_le!(u3, 3);
-    impl_read_le!(u4, 4);
-    impl_read_le!(u5, 5);
-    impl_read_le!(u6, 6);
-    impl_read_le!(u7, 7);
-    impl_read_le!(u8, 8);
     impl_read_le!(u9, 9);
     impl_read_le!(u10, 10);
     impl_read_le!(u11, 11);
@@ -127,38 +111,6 @@ fn big_endian_read_helper<T: BitTraits, const N: usize>(buf: &[u1; N]) -> T
 }
 
 impl ByteOrder for BigEndian {
-    fn read_u1(buf: &[u1; 1]) -> u1 {
-        big_endian_read_helper(buf)
-    }
-
-    fn read_u2(buf: &[u1; 2]) -> u2 {
-        big_endian_read_helper(buf)
-    }
-
-    fn read_u3(buf: &[u1; 3]) -> u3 {
-        big_endian_read_helper(buf)
-    }
-
-    fn read_u4(buf: &[u1; 4]) -> u4 {
-        big_endian_read_helper(buf)
-    }
-
-    fn read_u5(buf: &[u1; 5]) -> u5 {
-        big_endian_read_helper(buf)
-    }
-
-    fn read_u6(buf: &[u1; 6]) -> u6 {
-        big_endian_read_helper(buf)
-    }
-
-    fn read_u7(buf: &[u1; 7]) -> u7 {
-        big_endian_read_helper(buf)
-    }
-
-    fn read_u8(buf: &[u1; 8]) -> u8 {
-        big_endian_read_helper(buf)
-    }
-
     fn read_u9(buf: &[u1; 9]) -> u9 {
         big_endian_read_helper(buf)
     }
