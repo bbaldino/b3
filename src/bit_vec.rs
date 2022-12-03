@@ -79,7 +79,8 @@ impl BitVec {
         let start_byte = start_bit_index / 8;
         let end_byte = (end_bit_index - 1) / 8;
         let bit_len = end_bit_index - start_bit_index;
-        println!("got start byte {start_byte} and end byte {end_byte}");
+        // We now need to adjust the start_bit_index to be relative to the start_byte
+        let start_bit_index = start_bit_index - start_byte * 8;
         //println!("returning slice with start byte {}, end_byte {}, start_bit_index {}, end_bit_index {}", start_byte, end_byte, start_bit_index, start_bit_index + bit_len);
         BitSlice::new(
             &self.buf[start_byte..=end_byte],

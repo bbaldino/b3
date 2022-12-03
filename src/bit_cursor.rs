@@ -76,11 +76,11 @@ mod tests {
 
     use ux::u1;
 
-    use crate::{bitarray, bitvec};
+    use crate::{bitarray, bitvec, bit_read_exts::BitReadExts};
 
     #[test]
     fn test_read() {
-        let vec = bitvec!(1, 1, 1, 1, 0, 0, 0, 0);
+        let vec = bitvec!(1, 1, 1, 1, 0, 0, 0, 0, 1, 1);
         let mut cursor = BitCursor::new(vec);
         let mut read_buf = [u1::new(0); 2];
 
@@ -95,6 +95,9 @@ mod tests {
 
         assert_eq!(cursor.read(&mut read_buf).unwrap(), 2);
         assert_eq!(read_buf, [u1::new(0), u1::new(0)]);
+
+        assert_eq!(cursor.read(&mut read_buf).unwrap(), 2);
+        assert_eq!(read_buf, [u1::new(1), u1::new(1)]);
     }
 
     #[test]
