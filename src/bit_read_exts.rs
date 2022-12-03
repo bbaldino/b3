@@ -1,12 +1,9 @@
-use std::ops::{ShlAssign, BitOrAssign};
-
 use ux::*;
 
-use crate::{bit_read::BitRead, byte_order::ByteOrder};
+use crate::{bit_read::BitRead, bit_traits::BitTraits, byte_order::ByteOrder};
 
-fn bit_read_exts_helper<T, const N: usize, U: BitRead>(buf: &mut U) -> std::io::Result<T>
+fn bit_read_exts_helper<T: BitTraits, const N: usize, U: BitRead>(buf: &mut U) -> std::io::Result<T>
 where
-    T: Default + ShlAssign<usize> + BitOrAssign + From<u1>,
     U: ?Sized
 {
 
@@ -20,9 +17,22 @@ where
     Ok(val)
 }
 
-// TODO: change to return Result
-
 pub trait BitReadExts: BitRead {
+    //fn read<T: BitTraits>(&mut self) -> std::io::Result<T> 
+    //where
+    //    [(); T::BITS]:
+    //{
+    //    let mut read_buf = [u1::default(); T::BITS];
+    //    self.read_exact(&mut read_buf)?;
+    //    let mut val = T::ZERO;
+    //    for bit in read_buf.iter() {
+    //        val <<= 1;
+    //        val |= (*bit).into();
+    //    }
+
+    //    Ok(val)
+    //}
+
     fn read_u1(&mut self) -> std::io::Result<u1> {
         bit_read_exts_helper::<u1, 1, Self>(self)
     }

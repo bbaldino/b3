@@ -10,6 +10,8 @@ use crate::bit_write::BitWrite;
 // A macro helper also had problems, because of the paste! issue
 // (https://github.com/dtolnay/paste/issues/90)
 
+// TODO: use BitTraits here to make life easier
+
 fn bit_write_exts_write_helper<T, const N: usize, U: BitWrite + ?Sized>(buf: &mut U, mut value: T) -> std::io::Result<()>
 where
     T: Shl<usize> + Shr<usize> + Copy + ShrAssign<usize>,

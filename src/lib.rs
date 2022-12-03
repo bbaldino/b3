@@ -1,3 +1,4 @@
+#![feature(generic_const_exprs)]
 //#![feature(trace_macros)]
 //trace_macros!(true);
 
@@ -10,5 +11,6 @@ pub mod byte_order;
 pub mod slice;
 mod util;
 pub mod bit_write_exts;
+pub mod bit_traits;
 
 pub use ux;
