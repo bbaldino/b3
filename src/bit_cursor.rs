@@ -8,34 +8,32 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct BitCursor<T> {
-    inner: T,
+pub struct BitCursor {
+    inner: BitVec,
     pos: usize,
 }
 
-impl<T> BitCursor<T> {
-    pub fn into_inner(self) -> T {
-        self.inner
-    }
-}
-
-impl BitCursor<BitVec> {
-    pub fn new(inner: BitVec) -> BitCursor<BitVec> {
+impl BitCursor {
+    pub fn new(inner: BitVec) -> BitCursor {
         BitCursor { inner, pos: 0 }
     }
 
+    pub fn into_inner(self) -> BitVec {
+        self.inner
+    }
+
     pub fn remaining_slice(&self) -> BitSlice<'_> {
-        let pos = self.pos.min(self.inner.len());
-        self.inner.get_slice(pos..)
+        let len = self.pos.min(self.inner.len());
+        self.inner.get_slice(len..)
     }
 
     pub fn remaining_slice_mut(&mut self) -> BitSliceMut<'_> {
-        let pos = self.pos.min(self.inner.len());
-        self.inner.get_slice_mut(pos..)
+        let len = self.pos.min(self.inner.len());
+        self.inner.get_slice_mut(len..)
     }
 }
 
-impl BitRead for BitCursor<BitVec> {
+impl BitRead for BitCursor {
     fn read(&mut self, buf: &mut [u1]) -> std::io::Result<usize> {
         // Read buf.len() bits from pos to pos + buf.len() into buf
         let n = self.remaining_slice().len().min(buf.len());
@@ -53,7 +51,7 @@ impl BitRead for BitCursor<BitVec> {
     }
 }
 
-impl BitWrite for BitCursor<BitVec> {
+impl BitWrite for BitCursor {
     fn write(&mut self, buf: &[u1]) -> std::io::Result<usize> {
         let n = self.remaining_slice().len().min(buf.len());
         BitWrite::write(&mut self.remaining_slice_mut(), buf)?;
