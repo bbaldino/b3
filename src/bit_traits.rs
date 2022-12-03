@@ -1,12 +1,13 @@
-use std::ops::{ShlAssign, BitOrAssign};
+use std::ops::{ShlAssign, BitOrAssign, BitAnd, ShrAssign};
 
 use ux::*;
 
 use paste::paste;
 
-pub trait BitTraits: Default + ShlAssign<usize> + From<u1> + BitOrAssign<Self> {
+pub trait BitTraits: Default + ShlAssign<usize> + ShrAssign<usize> + From<u1> + BitOrAssign<Self> + BitAnd<Self, Output = Self> + PartialEq + Copy {
     const BITS: usize;
     const ZERO: Self;
+    const ONE: Self;
 }
 
 macro_rules! impl_bit_traits_for_ux {
@@ -15,6 +16,7 @@ macro_rules! impl_bit_traits_for_ux {
             impl BitTraits for $type {
                 const BITS: usize = $num_bits;
                 const ZERO: Self = $type::new(0);
+                const ONE: Self = $type::new(1);
             }
         }
     };
@@ -23,16 +25,19 @@ macro_rules! impl_bit_traits_for_ux {
 impl BitTraits for u8 {
     const BITS: usize = 8;
     const ZERO: Self = 0;
+    const ONE: Self = 1;
 }
 
 impl BitTraits for u16 {
     const BITS: usize = 16;
     const ZERO: Self = 0;
+    const ONE: Self = 1;
 }
 
 impl BitTraits for u32 {
     const BITS: usize = 32;
     const ZERO: Self = 0;
+    const ONE: Self = 1;
 }
 
 impl_bit_traits_for_ux!(u1, 1);

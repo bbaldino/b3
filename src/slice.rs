@@ -140,7 +140,6 @@ impl BitSliceMut<'_> {
         // Now make bit_pos relative to the byte
         let bit_pos = bit_pos % 8;
         let mut byte = &mut self.buf[byte_pos];
-        println!("index = {}, byte_pos = {}, bit_pos = {}", index, byte_pos, bit_pos);
         set_bit(&mut byte, bit_pos, value);
     }
 
