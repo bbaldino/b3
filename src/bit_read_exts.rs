@@ -18,21 +18,6 @@ where
 }
 
 pub trait BitReadExts: BitRead {
-    //fn read<T: BitTraits>(&mut self) -> std::io::Result<T> 
-    //where
-    //    [(); T::BITS]:
-    //{
-    //    let mut read_buf = [u1::default(); T::BITS];
-    //    self.read_exact(&mut read_buf)?;
-    //    let mut val = T::ZERO;
-    //    for bit in read_buf.iter() {
-    //        val <<= 1;
-    //        val |= (*bit).into();
-    //    }
-
-    //    Ok(val)
-    //}
-
     fn read_u1(&mut self) -> std::io::Result<u1> {
         bit_read_exts_helper::<u1, 1, Self>(self)
     }

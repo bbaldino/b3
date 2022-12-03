@@ -41,7 +41,6 @@ macro_rules! impl_read_le {
 }
 
 pub trait ByteOrder {
-    //fn read<T: BitTraits>(_buf: &[u1; T::BITS]) -> T;
     fn read_u1(buf: &[u1; 1]) -> u1;
     fn read_u2(buf: &[u1; 2]) -> u2;
     fn read_u3(buf: &[u1; 3]) -> u3;
@@ -82,40 +81,7 @@ pub struct LittleEndian {}
 
 pub type NetworkOrder = BigEndian;
 
-// I think instead of the macro, we could write a helper function to implement the LE read.  I
-// think we'll need to define a trait for the uX types, though: at least one that defines the 'new'
-// method?
-
 impl ByteOrder for LittleEndian {
-    //fn read<T: BitTraits>(buf: &[u1; T::BITS]) -> T {
-    //    let mut val = T::ZERO;
-    //    if T::BITS > 32 {
-    //        unimplemented!("Only types up to 32 bits supported");
-    //    }
-    //    if T::BITS > 24 {
-    //        for i in 24..std::cmp::min(T::BITS, 32) {
-    //            val <<= 1;
-    //            val |= buf[i].into();
-    //        }
-    //    }
-    //    if T::BITS > 16 {
-    //        for i in 16..std::cmp::min(T::BITS, 24) {
-    //            val <<= 1;
-    //            val |= buf[i].into();
-    //        }
-    //    }
-    //    if T::BITS > 8 {
-    //        for i in 8..std::cmp::min(T::BITS, 16) {
-    //            val <<= 1;
-    //            val |= buf[i].into();
-    //        }
-    //    }
-    //    for i in 0..std::cmp::min(T::BITS, 8) {
-    //        val <<= 1;
-    //        val |= buf[i].into();
-    //    }
-    //    val
-    //}
     impl_read_le!(u1, 1);
     impl_read_le!(u2, 2);
     impl_read_le!(u3, 3);
@@ -161,15 +127,6 @@ fn big_endian_read_helper<T: BitTraits, const N: usize>(buf: &[u1; N]) -> T
 }
 
 impl ByteOrder for BigEndian {
-    //fn read<T: BitTraits>(buf: &[u1; T::BITS]) -> T {
-    //    let mut val = T::ZERO;
-    //    for bit in buf.iter() {
-    //        val <<= 1;
-    //        val |= (*bit).into();
-    //    }
-    //    val
-    //}
-
     fn read_u1(buf: &[u1; 1]) -> u1 {
         big_endian_read_helper(buf)
     }
