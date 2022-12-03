@@ -8,6 +8,7 @@ use crate::{
     util::{get_bit, set_bit, get_start_end_bit_index_from_range},
 };
 
+/// A slice of bits.  |start_bit_index| is inclusive, |end_bit_index| is exclusive
 // TODO: Deriving PartialEq here requires that _all_ of 'buf' matches, but really we only care that
 // the bits from start_bit_index to end_bit_index match
 #[derive(Debug, PartialEq, Eq)]
@@ -27,12 +28,11 @@ impl BitSlice<'_> {
     }
 
     pub fn len(&self) -> usize {
-        // Start and end are both inclusive, so add 1
-        self.end_bit_index - self.start_bit_index + 1
+        self.end_bit_index - self.start_bit_index
     }
 
     pub fn at(&self, index: usize) -> u1 {
-        assert!(index <= self.end_bit_index);
+        assert!(index < self.end_bit_index);
         let bit_pos = self.start_bit_index + index;
         let byte_pos = bit_pos / 8;
         let byte = self.buf[byte_pos];
@@ -40,14 +40,15 @@ impl BitSlice<'_> {
     }
 
     pub fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> BitSlice<'_> {
+        println!("bitslice::get_slice");
         let (start_bit_index, end_bit_index) = get_start_end_bit_index_from_range(&range, self.len());
         let bit_len = end_bit_index - start_bit_index;
         // Adjust start and end bit indices to be relative to self.start_bit_index
         let start_bit_index = start_bit_index + self.start_bit_index;
-        let end_bit_index = start_bit_index + bit_len;
+        let end_bit_index = start_bit_index + bit_len + 1;
         
         let start_byte = start_bit_index / 8;
-        let end_byte = end_bit_index / 8;
+        let end_byte = (end_bit_index - 1) / 8;
         // We now need to adjust the start_bit_index to be relative to the start_byte
         let start_bit_index = start_bit_index - start_byte * 8;
         //println!("returning slice with start byte {}, end_byte {}, start_bit_index {}, end_bit_index {}", start_byte, end_byte, start_bit_index, start_bit_index + bit_len);
@@ -61,6 +62,7 @@ impl BitSlice<'_> {
 
 impl BitRead for BitSlice<'_> {
     fn read(&mut self, buf: &mut [u1]) -> std::io::Result<usize> {
+        println!("BitSlice::BitRead::read, self.len = {}, buf len = {}", self.len(), buf.len());
         let n = self.len().min(buf.len());
         // TODO: optimize...
         for (i, bit) in buf.iter_mut().enumerate().take(n) {
@@ -100,6 +102,7 @@ impl PartialEq<&[u1]> for BitSlice<'_> {
     }
 }
 
+/// A mutable slice of bits.  |start_bit_index| is inclusive, |end_bit_index| is exclusive
 #[derive(Debug)]
 pub struct BitSliceMut<'a> {
     buf: &'a mut [u8],
@@ -121,12 +124,11 @@ impl BitSliceMut<'_> {
     }
 
     pub fn len(&self) -> usize {
-        // Start and end are both inclusive, so add 1
-        self.end_bit_index - self.start_bit_index + 1
+        self.end_bit_index - self.start_bit_index
     }
 
     pub fn at(&self, index: usize) -> u1 {
-        assert!(index <= self.end_bit_index);
+        assert!(index < self.end_bit_index);
         let bit_pos = self.start_bit_index + index;
         let byte_pos = bit_pos / 8;
         let byte = self.buf[byte_pos];
@@ -134,7 +136,7 @@ impl BitSliceMut<'_> {
     }
 
     pub fn set(&mut self, index: usize, value: u1) {
-        assert!(index <= self.end_bit_index);
+        assert!(index < self.end_bit_index);
         let bit_pos = self.start_bit_index + index;
         let byte_pos = bit_pos / 8;
         // Now make bit_pos relative to the byte
@@ -148,10 +150,10 @@ impl BitSliceMut<'_> {
         let bit_len = end_bit_index - start_bit_index;
         // Adjust start and end bit indices to be relative to self.start_bit_index
         let start_bit_index = start_bit_index + self.start_bit_index;
-        let end_bit_index = start_bit_index + bit_len;
+        let end_bit_index = start_bit_index + bit_len + 1;
         
         let start_byte = start_bit_index / 8;
-        let end_byte = end_bit_index / 8;
+        let end_byte = (end_bit_index - 1) / 8;
         // We now need to adjust the start_bit_index to be relative to the start_byte
         let start_bit_index = start_bit_index - start_byte * 8;
         //println!("returning slice with start byte {}, end_byte {}, start_bit_index {}, end_bit_index {}", start_byte, end_byte, start_bit_index, start_bit_index + bit_len);
@@ -167,10 +169,10 @@ impl BitSliceMut<'_> {
         let bit_len = end_bit_index - start_bit_index;
         // Adjust start and end bit indices to be relative to self.start_bit_index
         let start_bit_index = start_bit_index + self.start_bit_index;
-        let end_bit_index = start_bit_index + bit_len;
+        let end_bit_index = start_bit_index + bit_len + 1;
         
         let start_byte = start_bit_index / 8;
-        let end_byte = end_bit_index / 8;
+        let end_byte = (end_bit_index - 1) / 8;
         // We now need to adjust the start_bit_index to be relative to the start_byte
         let start_bit_index = start_bit_index - start_byte * 8;
         //println!("returning slice with start byte {}, end_byte {}, start_bit_index {}, end_bit_index {}", start_byte, end_byte, start_bit_index, start_bit_index + bit_len);

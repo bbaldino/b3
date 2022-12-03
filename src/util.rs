@@ -42,7 +42,8 @@ pub(crate) fn get_bit(byte: u8, bit_index: usize) -> u1 {
 }
 
 /// Get the start and end bit indices from the given |range|, where |len| represents the length of
-/// the item being indexed.
+/// the item being indexed.  The returned start_bit_index is inclusive and end_bit_index is
+/// exclusive.
 pub(crate) fn get_start_end_bit_index_from_range<T: RangeBounds<usize>>(
     range: &T,
     len: usize
@@ -53,9 +54,9 @@ pub(crate) fn get_start_end_bit_index_from_range<T: RangeBounds<usize>>(
         std::ops::Bound::Unbounded => 0,
     };
     let end_bit_index = match range.end_bound() {
-        std::ops::Bound::Included(&s) => s,
-        std::ops::Bound::Excluded(s) => s - 1,
-        std::ops::Bound::Unbounded => len - 1,
+        std::ops::Bound::Included(s) => s + 1,
+        std::ops::Bound::Excluded(&s) => s,
+        std::ops::Bound::Unbounded => len,
     };
     (start_bit_index, end_bit_index)
 }

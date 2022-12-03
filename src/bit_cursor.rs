@@ -24,6 +24,7 @@ impl BitCursor {
 
     pub fn remaining_slice(&self) -> BitSlice<'_> {
         let len = self.pos.min(self.inner.len());
+        println!("bitcursor::remaining_slice.  self.pos = {}, inner len = {}, result len = {len}", self.pos, self.inner.len());
         self.inner.get_slice(len..)
     }
 
@@ -35,6 +36,7 @@ impl BitCursor {
 
 impl BitRead for BitCursor {
     fn read(&mut self, buf: &mut [u1]) -> std::io::Result<usize> {
+        println!("read: cursor, curr position = {}, reading {} bits, remaining slice len: {}", self.pos, buf.len(), self.remaining_slice().len());
         // Read buf.len() bits from pos to pos + buf.len() into buf
         let n = self.remaining_slice().len().min(buf.len());
         BitRead::read(&mut self.remaining_slice(), buf)?;
@@ -43,6 +45,7 @@ impl BitRead for BitCursor {
     }
 
     fn read_exact(&mut self, buf: &mut [u1]) -> std::io::Result<()> {
+        println!("read_exact: cursor, curr position = {}, reading {} bits, remaining slice len: {}", self.pos, buf.len(), self.remaining_slice().len());
         let n = buf.len();
         BitRead::read_exact(&mut self.remaining_slice(), buf)?;
         self.pos += n;
