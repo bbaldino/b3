@@ -18,6 +18,10 @@ where
 }
 
 pub trait BitReadExts: BitRead {
+    fn read_bool(&mut self) -> std::io::Result<bool> {
+        self.read_u1().map(|v| v.into())
+    }
+
     fn read_u1(&mut self) -> std::io::Result<u1> {
         bit_read_exts_helper::<u1, 1, Self>(self)
     }

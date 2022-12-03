@@ -19,6 +19,10 @@ fn bit_write_exts_helper<T: BitTraits, const N: usize, U: BitWrite + ?Sized>(buf
 }
 
 pub trait BitWriteExts: BitWrite {
+    fn write_bool(&mut self, value: bool) -> std::io::Result<()> {
+        self.write_u1(value.into())
+    }
+
     fn write_u1(&mut self, value: u1) -> std::io::Result<()> {
         self.write_all(&[value])
     }
