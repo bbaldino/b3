@@ -18,6 +18,13 @@ impl BitCursor {
         BitCursor { inner, pos: 0 }
     }
 
+    pub fn from_vec(vec: Vec<u8>) -> BitCursor {
+        BitCursor {
+            inner: BitVec::from_u8_vec(vec),
+            pos: 0
+        }
+    }
+
     pub fn into_inner(self) -> BitVec {
         self.inner
     }
@@ -31,6 +38,14 @@ impl BitCursor {
     pub fn remaining_slice_mut(&mut self) -> BitSliceMut<'_> {
         let len = self.pos.min(self.inner.len());
         self.inner.get_slice_mut(len..)
+    }
+
+    pub fn bits_remaining(&self) -> usize {
+        self.remaining_slice().len()
+    }
+
+    pub fn bytes_remaining(&self) -> usize {
+        self.bits_remaining() / 8
     }
 }
 
@@ -76,7 +91,7 @@ mod tests {
 
     use ux::u1;
 
-    use crate::{bitarray, bitvec, bit_read_exts::BitReadExts};
+    use crate::{bitarray, bitvec};
 
     #[test]
     fn test_read() {

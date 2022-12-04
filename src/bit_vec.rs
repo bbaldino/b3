@@ -21,6 +21,14 @@ impl BitVec {
         }
     }
 
+    pub fn from_u8_vec(vec: Vec<u8>) -> BitVec {
+        let len = vec.len() * 8;
+        BitVec {
+            buf: vec,
+            len,
+        }
+    }
+
     pub fn with_capacity(capacity: usize) -> BitVec {
         BitVec {
             buf: Vec::with_capacity((capacity + 7) / 8),
