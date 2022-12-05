@@ -40,7 +40,6 @@ impl BitSlice<'_> {
     }
 
     pub fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> BitSlice<'_> {
-        println!("bitslice::get_slice");
         let (start_bit_index, end_bit_index) = get_start_end_bit_index_from_range(&range, self.len());
         let bit_len = end_bit_index - start_bit_index;
         // Adjust start and end bit indices to be relative to self.start_bit_index
@@ -51,7 +50,6 @@ impl BitSlice<'_> {
         let end_byte = (end_bit_index - 1) / 8;
         // We now need to adjust the start_bit_index to be relative to the start_byte
         let start_bit_index = start_bit_index - start_byte * 8;
-        //println!("returning slice with start byte {}, end_byte {}, start_bit_index {}, end_bit_index {}", start_byte, end_byte, start_bit_index, start_bit_index + bit_len);
         BitSlice::new(
             &self.buf[start_byte..=end_byte],
             start_bit_index,
@@ -62,7 +60,6 @@ impl BitSlice<'_> {
 
 impl BitRead for BitSlice<'_> {
     fn read(&mut self, buf: &mut [u1]) -> std::io::Result<usize> {
-        println!("BitSlice::BitRead::read, self.len = {}, buf len = {}", self.len(), buf.len());
         let n = self.len().min(buf.len());
         // TODO: optimize...
         for (i, bit) in buf.iter_mut().enumerate().take(n) {
@@ -156,7 +153,6 @@ impl BitSliceMut<'_> {
         let end_byte = (end_bit_index - 1) / 8;
         // We now need to adjust the start_bit_index to be relative to the start_byte
         let start_bit_index = start_bit_index - start_byte * 8;
-        //println!("returning slice with start byte {}, end_byte {}, start_bit_index {}, end_bit_index {}", start_byte, end_byte, start_bit_index, start_bit_index + bit_len);
         BitSlice::new(
             &self.buf[start_byte..=end_byte],
             start_bit_index,
@@ -175,7 +171,6 @@ impl BitSliceMut<'_> {
         let end_byte = (end_bit_index - 1) / 8;
         // We now need to adjust the start_bit_index to be relative to the start_byte
         let start_bit_index = start_bit_index - start_byte * 8;
-        //println!("returning slice with start byte {}, end_byte {}, start_bit_index {}, end_bit_index {}", start_byte, end_byte, start_bit_index, start_bit_index + bit_len);
         BitSliceMut::new(
             &mut self.buf[start_byte..=end_byte],
             start_bit_index,
