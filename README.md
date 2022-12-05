@@ -70,9 +70,17 @@ cursor.write_exact(&read_buf);
 # BitReadExts, BitWriteExts
 Like how the [byteorder](https://crates.io/crates/byteorder) crate provides extensions to `std::io::Read` and `std::io::Write` for reading integer types in big and little endian modes, b3 defines `BitReadExts` and `BitWriteExts` which extend the `BitRead` and `BitWrite` traits and allow reading specific uX type in different orders:
 
+#### Reading
 ```
-cursor.read_u19::<BigEndian>();
-cursor.read_u21::<LittleEndian>();
+let u19_val = cursor.read_u19::<BigEndian>();
+let u21_val = cursor.read_u21::<LittleEndian>();
 // NetworkOrder is an alias for BigEndian
-cursor.read_u12::<NetworkOrder>();
+let u12_val = cursor.read_u12::<NetworkOrder>();
+```
+#### Writing
+```
+cursor.write_u19::<BigEndian>(u19::new(42));
+cursor.write_u21::<LittleEndian>(u21::new(43));
+// NetworkOrder is an alias for BigEndian
+cursor.write_u12::<NetworkOrder>(u12::new(44));
 ```
