@@ -4,7 +4,7 @@ use ux::*;
 
 use crate::{
     slice::{BitSlice, BitSliceMut},
-    util::{get_bit, set_bit, get_start_end_bit_index_from_range},
+    util::{get_bit, get_start_end_bit_index_from_range, set_bit},
 };
 
 #[derive(Debug)]
@@ -23,10 +23,7 @@ impl BitVec {
 
     pub fn from_u8_vec(vec: Vec<u8>) -> BitVec {
         let len = vec.len() * 8;
-        BitVec {
-            buf: vec,
-            len,
-        }
+        BitVec { buf: vec, len }
     }
 
     pub fn with_capacity(capacity: usize) -> BitVec {
@@ -69,7 +66,10 @@ impl BitVec {
     }
 
     pub fn iter(&self) -> BitVecIterator<'_> {
-        BitVecIterator { vec: self, bit_pos: 0 }
+        BitVecIterator {
+            vec: self,
+            bit_pos: 0,
+        }
     }
 
     pub fn len(&self) -> usize {
@@ -81,7 +81,8 @@ impl BitVec {
     }
 
     pub fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> BitSlice<'_> {
-        let (start_bit_index, end_bit_index) = get_start_end_bit_index_from_range(&range, self.len());
+        let (start_bit_index, end_bit_index) =
+            get_start_end_bit_index_from_range(&range, self.len());
         let start_byte = start_bit_index / 8;
         let end_byte = (end_bit_index - 1) / 8;
         let bit_len = end_bit_index - start_bit_index;
@@ -95,7 +96,8 @@ impl BitVec {
     }
 
     pub fn get_slice_mut<T: RangeBounds<usize>>(&mut self, range: T) -> BitSliceMut<'_> {
-        let (start_bit_index, end_bit_index) = get_start_end_bit_index_from_range(&range, self.len());
+        let (start_bit_index, end_bit_index) =
+            get_start_end_bit_index_from_range(&range, self.len());
         let start_byte = start_bit_index / 8;
         let end_byte = (end_bit_index - 1) / 8;
         let bit_len = end_bit_index - start_bit_index;
@@ -167,7 +169,7 @@ macro_rules! bitarray {
 
 pub struct BitVecIterator<'a> {
     vec: &'a BitVec,
-    bit_pos: usize
+    bit_pos: usize,
 }
 
 impl Iterator for BitVecIterator<'_> {

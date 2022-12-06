@@ -46,7 +46,7 @@ pub(crate) fn get_bit(byte: u8, bit_index: usize) -> u1 {
 /// exclusive.
 pub(crate) fn get_start_end_bit_index_from_range<T: RangeBounds<usize>>(
     range: &T,
-    len: usize
+    len: usize,
 ) -> (usize, usize) {
     let start_bit_index = match range.start_bound() {
         std::ops::Bound::Included(&s) => s,

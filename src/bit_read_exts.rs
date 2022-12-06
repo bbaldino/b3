@@ -4,9 +4,8 @@ use crate::{bit_read::BitRead, bit_traits::BitTraits, byte_order::ByteOrder};
 
 fn bit_read_exts_helper<T: BitTraits, const N: usize, U: BitRead>(buf: &mut U) -> std::io::Result<T>
 where
-    U: ?Sized
+    U: ?Sized,
 {
-
     let mut read_buf = [u1::default(); N];
     buf.read_exact(&mut read_buf)?;
     let mut val = T::default();

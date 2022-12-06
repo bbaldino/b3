@@ -111,30 +111,30 @@ pub trait ByteOrder {
     fn read_u31(buf: &[u1; 31]) -> u31;
     fn read_u32(buf: &[u1; 32]) -> u32;
 
-    fn write_u9(buf: &mut[u1; 9], value: u9);
-    fn write_u10(buf: &mut[u1; 10], value: u10);
-    fn write_u11(buf: &mut[u1; 11], value: u11);
-    fn write_u12(buf: &mut[u1; 12], value: u12);
-    fn write_u13(buf: &mut[u1; 13], value: u13);
-    fn write_u14(buf: &mut[u1; 14], value: u14);
-    fn write_u15(buf: &mut[u1; 15], value: u15);
-    fn write_u16(buf: &mut[u1; 16], value: u16);
-    fn write_u17(buf: &mut[u1; 17], value: u17);
-    fn write_u18(buf: &mut[u1; 18], value: u18);
-    fn write_u19(buf: &mut[u1; 19], value: u19);
-    fn write_u20(buf: &mut[u1; 20], value: u20);
-    fn write_u21(buf: &mut[u1; 21], value: u21);
-    fn write_u22(buf: &mut[u1; 22], value: u22);
-    fn write_u23(buf: &mut[u1; 23], value: u23);
-    fn write_u24(buf: &mut[u1; 24], value: u24);
-    fn write_u25(buf: &mut[u1; 25], value: u25);
-    fn write_u26(buf: &mut[u1; 26], value: u26);
-    fn write_u27(buf: &mut[u1; 27], value: u27);
-    fn write_u28(buf: &mut[u1; 28], value: u28);
-    fn write_u29(buf: &mut[u1; 29], value: u29);
-    fn write_u30(buf: &mut[u1; 30], value: u30);
-    fn write_u31(buf: &mut[u1; 31], value: u31);
-    fn write_u32(buf: &mut[u1; 32], value: u32);
+    fn write_u9(buf: &mut [u1; 9], value: u9);
+    fn write_u10(buf: &mut [u1; 10], value: u10);
+    fn write_u11(buf: &mut [u1; 11], value: u11);
+    fn write_u12(buf: &mut [u1; 12], value: u12);
+    fn write_u13(buf: &mut [u1; 13], value: u13);
+    fn write_u14(buf: &mut [u1; 14], value: u14);
+    fn write_u15(buf: &mut [u1; 15], value: u15);
+    fn write_u16(buf: &mut [u1; 16], value: u16);
+    fn write_u17(buf: &mut [u1; 17], value: u17);
+    fn write_u18(buf: &mut [u1; 18], value: u18);
+    fn write_u19(buf: &mut [u1; 19], value: u19);
+    fn write_u20(buf: &mut [u1; 20], value: u20);
+    fn write_u21(buf: &mut [u1; 21], value: u21);
+    fn write_u22(buf: &mut [u1; 22], value: u22);
+    fn write_u23(buf: &mut [u1; 23], value: u23);
+    fn write_u24(buf: &mut [u1; 24], value: u24);
+    fn write_u25(buf: &mut [u1; 25], value: u25);
+    fn write_u26(buf: &mut [u1; 26], value: u26);
+    fn write_u27(buf: &mut [u1; 27], value: u27);
+    fn write_u28(buf: &mut [u1; 28], value: u28);
+    fn write_u29(buf: &mut [u1; 29], value: u29);
+    fn write_u30(buf: &mut [u1; 30], value: u30);
+    fn write_u31(buf: &mut [u1; 31], value: u31);
+    fn write_u32(buf: &mut [u1; 32], value: u32);
 }
 
 pub struct BigEndian {}
@@ -294,7 +294,8 @@ mod tests {
         let u18_val = LittleEndian::read_u18(&le_buf);
         assert_eq!(u18_val, u18::new(200618));
         // u26 50532266: 0b00000011, 0b00000011, 0b00001111, 0b10101010
-        let le_buf = bitarray!(1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1);
+        let le_buf =
+            bitarray!(1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1);
         let u26_val = LittleEndian::read_u26(&le_buf);
         assert_eq!(u26_val, u26::new(50532266));
     }
@@ -310,12 +311,20 @@ mod tests {
         let mut le_buf = [u1::new(0); 18];
         let value = u18::new(200618);
         LittleEndian::write_u18(&mut le_buf, value);
-        assert_eq!(&le_buf, &bitarray!(1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1)[..]);
+        assert_eq!(
+            &le_buf,
+            &bitarray!(1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1)[..]
+        );
         // u26 50532266: 0b00000011, 0b00000011, 0b00001111, 0b10101010
         let mut le_buf = [u1::new(0); 26];
         let value = u26::new(50532266);
         LittleEndian::write_u26(&mut le_buf, value);
-        assert_eq!(&le_buf, &bitarray!(1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1)[..]);
+        assert_eq!(
+            &le_buf,
+            &bitarray!(
+                1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1
+            )[..]
+        );
     }
 
     #[test]
@@ -329,9 +338,9 @@ mod tests {
         let u18_val = BigEndian::read_u18(&be_buf);
         assert_eq!(u18_val, u18::new(200618));
         // u26 50532266: 0b00000011, 0b00000011, 0b00001111, 0b10101010
-        let be_buf = bitarray!(1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0);
+        let be_buf =
+            bitarray!(1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0);
         let u26_val = BigEndian::read_u26(&be_buf);
         assert_eq!(u26_val, u26::new(50532266));
-        
     }
 }

@@ -5,7 +5,7 @@ use ux::u1;
 use crate::{
     bit_read::BitRead,
     bit_write::BitWrite,
-    util::{get_bit, set_bit, get_start_end_bit_index_from_range},
+    util::{get_bit, get_start_end_bit_index_from_range, set_bit},
 };
 
 /// A slice of bits.  |start_bit_index| is inclusive, |end_bit_index| is exclusive
@@ -40,12 +40,13 @@ impl BitSlice<'_> {
     }
 
     pub fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> BitSlice<'_> {
-        let (start_bit_index, end_bit_index) = get_start_end_bit_index_from_range(&range, self.len());
+        let (start_bit_index, end_bit_index) =
+            get_start_end_bit_index_from_range(&range, self.len());
         let bit_len = end_bit_index - start_bit_index;
         // Adjust start and end bit indices to be relative to self.start_bit_index
         let start_bit_index = start_bit_index + self.start_bit_index;
         let end_bit_index = start_bit_index + bit_len + 1;
-        
+
         let start_byte = start_bit_index / 8;
         let end_byte = (end_bit_index - 1) / 8;
         // We now need to adjust the start_bit_index to be relative to the start_byte
@@ -143,12 +144,13 @@ impl BitSliceMut<'_> {
     }
 
     pub fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> BitSlice<'_> {
-        let (start_bit_index, end_bit_index) = get_start_end_bit_index_from_range(&range, self.len());
+        let (start_bit_index, end_bit_index) =
+            get_start_end_bit_index_from_range(&range, self.len());
         let bit_len = end_bit_index - start_bit_index;
         // Adjust start and end bit indices to be relative to self.start_bit_index
         let start_bit_index = start_bit_index + self.start_bit_index;
         let end_bit_index = start_bit_index + bit_len + 1;
-        
+
         let start_byte = start_bit_index / 8;
         let end_byte = (end_bit_index - 1) / 8;
         // We now need to adjust the start_bit_index to be relative to the start_byte
@@ -161,12 +163,13 @@ impl BitSliceMut<'_> {
     }
 
     pub fn get_slice_mut<T: RangeBounds<usize>>(&mut self, range: T) -> BitSliceMut<'_> {
-        let (start_bit_index, end_bit_index) = get_start_end_bit_index_from_range(&range, self.len());
+        let (start_bit_index, end_bit_index) =
+            get_start_end_bit_index_from_range(&range, self.len());
         let bit_len = end_bit_index - start_bit_index;
         // Adjust start and end bit indices to be relative to self.start_bit_index
         let start_bit_index = start_bit_index + self.start_bit_index;
         let end_bit_index = start_bit_index + bit_len + 1;
-        
+
         let start_byte = start_bit_index / 8;
         let end_byte = (end_bit_index - 1) / 8;
         // We now need to adjust the start_bit_index to be relative to the start_byte
@@ -214,7 +217,7 @@ impl PartialEq<&[u1]> for BitSliceMut<'_> {
 mod tests {
     use ux::u1;
 
-    use crate::{bitvec, bitarray};
+    use crate::{bitarray, bitvec};
 
     #[test]
     fn get_slice_from_bit_slice() {

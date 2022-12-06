@@ -1,10 +1,19 @@
-use std::ops::{ShlAssign, BitOrAssign, BitAnd, ShrAssign};
+use std::ops::{BitAnd, BitOrAssign, ShlAssign, ShrAssign};
 
 use ux::*;
 
 use paste::paste;
 
-pub trait BitTraits: Default + ShlAssign<usize> + ShrAssign<usize> + From<u1> + BitOrAssign<Self> + BitAnd<Self, Output = Self> + PartialEq + Copy {
+pub trait BitTraits:
+    Default
+    + ShlAssign<usize>
+    + ShrAssign<usize>
+    + From<u1>
+    + BitOrAssign<Self>
+    + BitAnd<Self, Output = Self>
+    + PartialEq
+    + Copy
+{
     const BITS: usize;
     const ZERO: Self;
     const ONE: Self;
