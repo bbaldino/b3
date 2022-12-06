@@ -67,7 +67,7 @@ cursor.write(&write_buf);
 cursor.write_exact(&read_buf);
 ```
 
-# BitReadExts, BitWriteExts
+### BitReadExts, BitWriteExts
 Like how the [byteorder](https://crates.io/crates/byteorder) crate provides extensions to `std::io::Read` and `std::io::Write` for reading integer types in big and little endian modes, b3 defines `BitReadExts` and `BitWriteExts` which extend the `BitRead` and `BitWrite` traits and allow reading specific uX type in different orders:
 
 #### Reading
