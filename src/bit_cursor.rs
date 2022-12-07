@@ -1,3 +1,5 @@
+use std::io::{Seek, SeekFrom};
+
 use ux::u1;
 
 use crate::{
@@ -82,13 +84,38 @@ impl BitWrite for BitCursor {
     }
 }
 
+impl Seek for BitCursor {
+    fn seek(&mut self, style: std::io::SeekFrom) -> std::io::Result<u64> {
+        let (base_pos, offset) = match style {
+            SeekFrom::Start(n) => {
+                self.pos = n as usize;
+                return Ok(self.pos as u64);
+            },
+            SeekFrom::End(n) => (self.inner.len() as u64, n),
+            SeekFrom::Current(n) => (self.pos as u64, n)
+        };
+        match base_pos.checked_add_signed(offset) {
+            Some(n) => {
+                self.pos = n as usize;
+                Ok(self.pos as u64)
+            },
+            None => {
+                Err(std::io::Error::new(
+                    std::io::ErrorKind::InvalidInput,
+                    "invalid seek to a negative or overflowing position"
+                ))
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     use ux::u1;
 
-    use crate::{bitarray, bitvec};
+    use crate::{bitarray, bitvec, bit_read_exts::BitReadExts};
 
     #[test]
     fn test_read() {
@@ -126,5 +153,18 @@ mod tests {
             cursor.into_inner().get_slice(..),
             &bitarray!(0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0)[..]
         );
+    }
+
+    #[test]
+    fn test_seek() {
+        let vec = bitvec!(1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0);
+        let mut cursor = BitCursor::new(vec);
+
+        cursor.seek(SeekFrom::Current(4)).unwrap();
+        assert_eq!(cursor.read_u1().unwrap(), u1::new(0));
+        cursor.seek(SeekFrom::End(-5)).unwrap();
+        assert_eq!(cursor.read_u1().unwrap(), u1::new(1));
+        cursor.seek(SeekFrom::Current(-5)).unwrap();
+        assert_eq!(cursor.read_u1().unwrap(), u1::new(0));
     }
 }
