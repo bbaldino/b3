@@ -214,7 +214,7 @@ macro_rules! impl_write_be {
     ($type:ty, $size_bits:expr) => {
         paste! {
             fn [<write_ $type>](buf: &mut [u1; $size_bits], mut value: $type) {
-                for i in ($size_bits - 1)..=0 {
+                for i in (0..$size_bits).rev() {
                     if value & $type::ONE == $type::ONE {
                         buf[i] = u1::new(1);
                     }
@@ -342,5 +342,34 @@ mod tests {
             bitarray!(1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0);
         let u26_val = BigEndian::read_u26(&be_buf);
         assert_eq!(u26_val, u26::new(50532266));
+    }
+
+    #[test]
+    fn test_write_big_endian() {
+        // u12 4010: 0b00001111, 0b1010101010
+        let mut be_buf = [u1::ZERO; 12];
+        let value = u12::new(4010);
+        BigEndian::write_u12(&mut be_buf, value);
+        assert_eq!(&be_buf, &bitarray!(1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0)[..]);
+
+        // u18 200618: 0b00000011, 0b00001111, 0b10101010
+        let mut be_buf = [u1::ZERO; 18];
+        let value = u18::new(200618);
+        BigEndian::write_u18(&mut be_buf, value);
+        assert_eq!(
+            &be_buf,
+            &bitarray!(1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0)[..]
+        );
+
+        // u26 50532266: 0b00000011, 0b00000011, 0b00001111, 0b10101010
+        let mut be_buf = [u1::ZERO; 26];
+        let value = u26::new(50532266);
+        BigEndian::write_u26(&mut be_buf, value);
+        assert_eq!(
+            &be_buf,
+            &bitarray!(
+                1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0
+            )[..]
+        );
     }
 }
