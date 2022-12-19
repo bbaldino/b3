@@ -45,7 +45,7 @@ impl BitSlice<'_> {
         let bit_len = end_bit_index - start_bit_index;
         // Adjust start and end bit indices to be relative to self.start_bit_index
         let start_bit_index = start_bit_index + self.start_bit_index;
-        let end_bit_index = start_bit_index + bit_len + 1;
+        let end_bit_index = start_bit_index + bit_len;
 
         let start_byte = start_bit_index / 8;
         let end_byte = (end_bit_index - 1) / 8;

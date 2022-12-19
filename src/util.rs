@@ -56,7 +56,9 @@ pub(crate) fn get_start_end_bit_index_from_range<T: RangeBounds<usize>>(
     let end_bit_index = match range.end_bound() {
         std::ops::Bound::Included(s) => s + 1,
         std::ops::Bound::Excluded(&s) => s,
-        std::ops::Bound::Unbounded => len,
+        // The end bit index is exclusive, so to handle the case where the length is 0 we make sure
+        // it's always at least '1'.
+        std::ops::Bound::Unbounded => std::cmp::max(len, 1),
     };
     (start_bit_index, end_bit_index)
 }
