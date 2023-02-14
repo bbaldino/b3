@@ -11,6 +11,7 @@ use crate::{
     bit_vec::BitVec,
     bit_write::BitWrite,
     slice::{BitSlice, BitSliceMut},
+    util::get_start_end_bit_index_from_range,
 };
 
 #[derive(Debug)]
@@ -42,9 +43,15 @@ where
         self.inner.get_slice(len..)
     }
 
-    // TODO: this is wrong: the range should be adjusted to be relative to the current position
+    /// Get a "sub cursor", where the given range is calculated relative to the cursor's
+    /// current position.
+    /// TODO: right now this will panic if the range is invalid.  Result instead?
     pub fn sub_cursor<R: RangeBounds<usize>>(&self, range: R) -> BitCursor<BitSlice<'_>> {
-        let slice = self.inner.get_slice(range);
+        let (start_bit_index, end_bit_index) =
+            get_start_end_bit_index_from_range(&range, self.inner.len());
+        let start_bit_index = start_bit_index + self.position();
+        let end_bit_index = end_bit_index + self.position();
+        let slice = self.inner.get_slice(start_bit_index..end_bit_index);
         BitCursor {
             inner: slice,
             pos: 0,
@@ -73,7 +80,11 @@ where
         &mut self,
         range: R,
     ) -> BitCursor<BitSliceMut<'_>> {
-        let slice = self.inner.get_slice_mut(range);
+        let (start_bit_index, end_bit_index) =
+            get_start_end_bit_index_from_range(&range, self.inner.len());
+        let start_bit_index = start_bit_index + self.position();
+        let end_bit_index = end_bit_index + self.position();
+        let slice = self.inner.get_slice_mut(start_bit_index..end_bit_index);
         BitCursor {
             inner: slice,
             pos: 0,
