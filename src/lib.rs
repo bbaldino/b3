@@ -1,6 +1,7 @@
 //#![feature(trace_macros)]
 //trace_macros!(true);
 
+pub mod bit_buffer;
 pub mod bit_cursor;
 pub mod bit_read;
 pub mod bit_read_exts;

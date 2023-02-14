@@ -6,6 +6,7 @@ use std::{
 use ux::u1;
 
 use crate::{
+    bit_buffer::{BitBuffer, BitBufferMut},
     bit_read::BitRead,
     bit_vec::BitVec,
     bit_write::BitWrite,
@@ -32,25 +33,17 @@ impl<T> BitCursor<T> {
     }
 }
 
-impl BitCursor<BitVec> {
-    pub fn from_vec(vec: Vec<u8>) -> BitCursor<BitVec> {
-        BitCursor {
-            inner: BitVec::from_u8_vec(vec),
-            pos: 0,
-        }
-    }
-
+impl<T> BitCursor<T>
+where
+    T: BitBuffer,
+{
     pub fn remaining_slice(&self) -> BitSlice<'_> {
         let len = self.pos.min(self.inner.len());
         self.inner.get_slice(len..)
     }
 
-    pub fn remaining_slice_mut(&mut self) -> BitSliceMut<'_> {
-        let len = self.pos.min(self.inner.len());
-        self.inner.get_slice_mut(len..)
-    }
-
-    pub fn sub_cursor<T: RangeBounds<usize>>(&self, range: T) -> BitCursor<BitSlice<'_>> {
+    // TODO: this is wrong: the range should be adjusted to be relative to the current position
+    pub fn sub_cursor<R: RangeBounds<usize>>(&self, range: R) -> BitCursor<BitSlice<'_>> {
         let slice = self.inner.get_slice(range);
         BitCursor {
             inner: slice,
@@ -67,60 +60,40 @@ impl BitCursor<BitVec> {
     }
 }
 
-impl BitCursor<BitSlice<'_>> {
-    pub fn remaining_slice(&self) -> BitSlice<'_> {
-        let len = self.pos.min(self.inner.len());
-        self.inner.get_slice(len..)
-    }
-
-    pub fn bits_remaining(&self) -> usize {
-        self.remaining_slice().len()
-    }
-
-    pub fn bytes_remaining(&self) -> usize {
-        self.bits_remaining() / 8
-    }
-}
-
-impl BitCursor<BitSliceMut<'_>> {
-    pub fn remaining_slice(&self) -> BitSlice<'_> {
-        let len = self.pos.min(self.inner.len());
-        self.inner.get_slice(len..)
-    }
-
+impl<T> BitCursor<T>
+where
+    T: BitBufferMut,
+{
     pub fn remaining_slice_mut(&mut self) -> BitSliceMut<'_> {
         let len = self.pos.min(self.inner.len());
         self.inner.get_slice_mut(len..)
     }
 
-    pub fn bits_remaining(&self) -> usize {
-        self.remaining_slice().len()
-    }
-
-    pub fn bytes_remaining(&self) -> usize {
-        self.bits_remaining() / 8
-    }
-}
-
-impl BitRead for BitCursor<BitVec> {
-    fn read(&mut self, buf: &mut [u1]) -> std::io::Result<usize> {
-        // Read buf.len() bits from pos to pos + buf.len() into buf
-        let n = self.remaining_slice().len().min(buf.len());
-        BitRead::read(&mut self.remaining_slice(), buf)?;
-        self.pos += n;
-        Ok(n)
-    }
-
-    fn read_exact(&mut self, buf: &mut [u1]) -> std::io::Result<()> {
-        let n = buf.len();
-        BitRead::read_exact(&mut self.remaining_slice(), buf)?;
-        self.pos += n;
-
-        Ok(())
+    pub fn sub_cursor_mut<R: RangeBounds<usize>>(
+        &mut self,
+        range: R,
+    ) -> BitCursor<BitSliceMut<'_>> {
+        let slice = self.inner.get_slice_mut(range);
+        BitCursor {
+            inner: slice,
+            pos: 0,
+        }
     }
 }
 
-impl BitWrite for BitCursor<BitVec> {
+impl BitCursor<BitVec> {
+    pub fn from_vec(vec: Vec<u8>) -> BitCursor<BitVec> {
+        BitCursor {
+            inner: BitVec::from_u8_slice(&vec[..]),
+            pos: 0,
+        }
+    }
+}
+
+impl<T> BitWrite for BitCursor<T>
+where
+    T: BitBufferMut,
+{
     fn write(&mut self, buf: &[u1]) -> std::io::Result<usize> {
         let n = self.remaining_slice().len().min(buf.len());
         BitWrite::write(&mut self.remaining_slice_mut(), buf)?;
@@ -136,7 +109,10 @@ impl BitWrite for BitCursor<BitVec> {
     }
 }
 
-impl Seek for BitCursor<BitVec> {
+impl<T> Seek for BitCursor<T>
+where
+    T: BitBuffer,
+{
     fn seek(&mut self, style: std::io::SeekFrom) -> std::io::Result<u64> {
         let (base_pos, offset) = match style {
             SeekFrom::Start(n) => {
@@ -159,30 +135,10 @@ impl Seek for BitCursor<BitVec> {
     }
 }
 
-impl Seek for BitCursor<BitSlice<'_>> {
-    fn seek(&mut self, style: std::io::SeekFrom) -> std::io::Result<u64> {
-        let (base_pos, offset) = match style {
-            SeekFrom::Start(n) => {
-                self.pos = n as usize;
-                return Ok(self.pos as u64);
-            }
-            SeekFrom::End(n) => (self.inner.len() as u64, n),
-            SeekFrom::Current(n) => (self.pos as u64, n),
-        };
-        match base_pos.checked_add_signed(offset) {
-            Some(n) => {
-                self.pos = n as usize;
-                Ok(self.pos as u64)
-            }
-            None => Err(std::io::Error::new(
-                std::io::ErrorKind::InvalidInput,
-                "invalid seek to a negative or overflowing position",
-            )),
-        }
-    }
-}
-
-impl BitRead for BitCursor<BitSlice<'_>> {
+impl<T> BitRead for BitCursor<T>
+where
+    T: BitBuffer,
+{
     fn read(&mut self, buf: &mut [u1]) -> std::io::Result<usize> {
         // Read buf.len() bits from pos to pos + buf.len() into buf
         let n = self.remaining_slice().len().min(buf.len());
@@ -196,22 +152,6 @@ impl BitRead for BitCursor<BitSlice<'_>> {
         BitRead::read_exact(&mut self.remaining_slice(), buf)?;
         self.pos += n;
 
-        Ok(())
-    }
-}
-
-impl BitWrite for BitCursor<BitSliceMut<'_>> {
-    fn write(&mut self, buf: &[u1]) -> std::io::Result<usize> {
-        let n = self.remaining_slice().len().min(buf.len());
-        BitWrite::write(&mut self.remaining_slice_mut(), buf)?;
-        self.pos += n;
-        Ok(n)
-    }
-
-    fn write_all(&mut self, buf: &[u1]) -> std::io::Result<()> {
-        let n = self.remaining_slice().len().min(buf.len());
-        BitWrite::write_all(&mut self.remaining_slice_mut(), buf)?;
-        self.pos += n;
         Ok(())
     }
 }
@@ -220,7 +160,7 @@ impl BitWrite for BitCursor<BitSliceMut<'_>> {
 mod tests {
     use super::*;
 
-    use ux::u1;
+    use ux::{u1, u3};
 
     use crate::{bit_read_exts::BitReadExts, bitarray, bitvec};
 
@@ -273,5 +213,18 @@ mod tests {
         assert_eq!(cursor.read_u1().unwrap(), u1::new(1));
         cursor.seek(SeekFrom::Current(-5)).unwrap();
         assert_eq!(cursor.read_u1().unwrap(), u1::new(0));
+    }
+
+    #[test]
+    fn test_sub_cursor() {
+        let vec = bitvec!(1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0);
+        let mut cursor = BitCursor::new(vec);
+
+        let mut sub_cursor = cursor.sub_cursor(1..);
+
+        assert_eq!(sub_cursor.read_u3().unwrap(), u3::new(7));
+
+        // Original cursor position should be in the same place
+        assert_eq!(cursor.read_u1().unwrap(), u1::new(1));
     }
 }

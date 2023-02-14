@@ -3,15 +3,19 @@ use std::ops::RangeBounds;
 use ux::*;
 
 use crate::{
+    bit_buffer::{BitBuffer, BitBufferMut},
     slice::{BitSlice, BitSliceMut},
     util::{get_bit, get_start_end_bit_index_from_range, set_bit},
 };
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct BitVec {
     buf: Vec<u8>,
+    /// The length of the data inside this BitVec, in bits
     len: usize,
 }
+
+// TODO: 'release' function that returns Vec and length? do we need the length?
 
 impl BitVec {
     pub fn new() -> BitVec {
@@ -21,9 +25,12 @@ impl BitVec {
         }
     }
 
-    pub fn from_u8_vec(vec: Vec<u8>) -> BitVec {
-        let len = vec.len() * 8;
-        BitVec { buf: vec, len }
+    pub fn from_u8_slice(data: &[u8]) -> BitVec {
+        let len = data.len() * 8;
+        BitVec {
+            buf: data.to_vec(),
+            len,
+        }
     }
 
     pub fn with_capacity(capacity: usize) -> BitVec {
@@ -114,6 +121,22 @@ impl BitVec {
 impl Default for BitVec {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl BitBuffer for BitVec {
+    fn len(&self) -> usize {
+        self.len()
+    }
+
+    fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> BitSlice<'_> {
+        self.get_slice(range)
+    }
+}
+
+impl BitBufferMut for BitVec {
+    fn get_slice_mut<T: RangeBounds<usize>>(&mut self, range: T) -> BitSliceMut<'_> {
+        self.get_slice_mut(range)
     }
 }
 

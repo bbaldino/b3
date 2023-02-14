@@ -3,6 +3,7 @@ use std::ops::RangeBounds;
 use ux::u1;
 
 use crate::{
+    bit_buffer::{BitBuffer, BitBufferMut},
     bit_read::BitRead,
     bit_write::BitWrite,
     util::{get_bit, get_start_end_bit_index_from_range, set_bit},
@@ -97,6 +98,15 @@ impl PartialEq<&[u1]> for BitSlice<'_> {
             }
         }
         true
+    }
+}
+
+impl BitBuffer for BitSlice<'_> {
+    fn len(&self) -> usize {
+        self.len()
+    }
+    fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> BitSlice<'_> {
+        self.get_slice(range)
     }
 }
 
@@ -210,6 +220,21 @@ impl BitWrite for BitSliceMut<'_> {
 impl PartialEq<&[u1]> for BitSliceMut<'_> {
     fn eq(&self, other: &&[u1]) -> bool {
         PartialEq::eq(&self.get_slice(..), other)
+    }
+}
+
+impl BitBuffer for BitSliceMut<'_> {
+    fn len(&self) -> usize {
+        self.len()
+    }
+    fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> BitSlice<'_> {
+        self.get_slice(range)
+    }
+}
+
+impl BitBufferMut for BitSliceMut<'_> {
+    fn get_slice_mut<T: RangeBounds<usize>>(&mut self, range: T) -> BitSliceMut<'_> {
+        self.get_slice_mut(range)
     }
 }
 
