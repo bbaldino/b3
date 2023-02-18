@@ -10,6 +10,7 @@ pub mod bit_vec;
 pub mod bit_write;
 pub mod bit_write_exts;
 pub mod byte_order;
+pub mod error;
 pub mod slice;
 mod util;
 

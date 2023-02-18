@@ -10,6 +10,7 @@ use crate::{
     bit_read::BitRead,
     bit_vec::BitVec,
     bit_write::BitWrite,
+    error::B3Result,
     slice::{BitSlice, BitSliceMut},
     util::get_start_end_bit_index_from_range,
 };
@@ -40,22 +41,22 @@ where
 {
     pub fn remaining_slice(&self) -> BitSlice<'_> {
         let len = self.pos.min(self.inner.len());
-        self.inner.get_slice(len..)
+        // safety: we've just checked that len is valid
+        self.inner.get_slice(len..).unwrap()
     }
 
     /// Get a "sub cursor", where the given range is calculated relative to the cursor's
     /// current position.
-    /// TODO: right now this will panic if the range is invalid.  Result instead?
-    pub fn sub_cursor<R: RangeBounds<usize>>(&self, range: R) -> BitCursor<BitSlice<'_>> {
+    pub fn sub_cursor<R: RangeBounds<usize>>(&self, range: R) -> B3Result<BitCursor<BitSlice<'_>>> {
         let (start_bit_index, end_bit_index) =
             get_start_end_bit_index_from_range(&range, self.inner.len());
         let start_bit_index = start_bit_index + self.position();
         let end_bit_index = end_bit_index + self.position();
-        let slice = self.inner.get_slice(start_bit_index..end_bit_index);
-        BitCursor {
+        let slice = self.inner.get_slice(start_bit_index..end_bit_index)?;
+        Ok(BitCursor {
             inner: slice,
             pos: 0,
-        }
+        })
     }
 
     pub fn bits_remaining(&self) -> usize {
@@ -73,22 +74,23 @@ where
 {
     pub fn remaining_slice_mut(&mut self) -> BitSliceMut<'_> {
         let len = self.pos.min(self.inner.len());
-        self.inner.get_slice_mut(len..)
+        // safety: we've just checked that len is valid
+        self.inner.get_slice_mut(len..).unwrap()
     }
 
     pub fn sub_cursor_mut<R: RangeBounds<usize>>(
         &mut self,
         range: R,
-    ) -> BitCursor<BitSliceMut<'_>> {
+    ) -> B3Result<BitCursor<BitSliceMut<'_>>> {
         let (start_bit_index, end_bit_index) =
             get_start_end_bit_index_from_range(&range, self.inner.len());
         let start_bit_index = start_bit_index + self.position();
         let end_bit_index = end_bit_index + self.position();
-        let slice = self.inner.get_slice_mut(start_bit_index..end_bit_index);
-        BitCursor {
+        let slice = self.inner.get_slice_mut(start_bit_index..end_bit_index)?;
+        Ok(BitCursor {
             inner: slice,
             pos: 0,
-        }
+        })
     }
 }
 
@@ -208,7 +210,7 @@ mod tests {
         assert!(cursor.write(&bitarray!(0, 1, 1, 0)).is_ok());
 
         assert_eq!(
-            cursor.into_inner().get_slice(..),
+            cursor.into_inner().get_slice(..).unwrap(),
             &bitarray!(0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0)[..]
         );
     }
@@ -231,7 +233,7 @@ mod tests {
         let vec = bitvec!(1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0);
         let mut cursor = BitCursor::new(vec);
 
-        let mut sub_cursor = cursor.sub_cursor(1..);
+        let mut sub_cursor = cursor.sub_cursor(1..).expect("valid cursor");
 
         assert_eq!(sub_cursor.read_u3().unwrap(), u3::new(7));
 

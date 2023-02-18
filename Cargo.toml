@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 ux = { git = "https://github.com/bbaldino/uX", branch = "default" }
 paste = "1"
+thiserror = "1"

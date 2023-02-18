@@ -4,6 +4,7 @@ use ux::*;
 
 use crate::{
     bit_buffer::{BitBuffer, BitBufferMut},
+    error::{B3Error, B3Result},
     slice::{BitSlice, BitSliceMut},
     util::{get_bit, get_start_end_bit_index_from_range, set_bit},
 };
@@ -87,7 +88,7 @@ impl BitVec {
         self.buf.capacity() * 8
     }
 
-    pub fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> BitSlice<'_> {
+    pub fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> B3Result<BitSlice<'_>> {
         let (start_bit_index, end_bit_index) =
             get_start_end_bit_index_from_range(&range, self.len());
         let start_byte = start_bit_index / 8;
@@ -95,14 +96,21 @@ impl BitVec {
         let bit_len = end_bit_index - start_bit_index;
         // We now need to adjust the start_bit_index to be relative to the start_byte
         let start_bit_index = start_bit_index - start_byte * 8;
-        BitSlice::new(
+        if end_byte >= self.buf.len() {
+            return Err(B3Error::SliceOutOfRange {
+                len: self.buf.len(),
+                slice_start: start_byte,
+                slice_end: end_byte,
+            });
+        }
+        Ok(BitSlice::new(
             &self.buf[start_byte..=end_byte],
             start_bit_index,
             start_bit_index + bit_len,
-        )
+        ))
     }
 
-    pub fn get_slice_mut<T: RangeBounds<usize>>(&mut self, range: T) -> BitSliceMut<'_> {
+    pub fn get_slice_mut<T: RangeBounds<usize>>(&mut self, range: T) -> B3Result<BitSliceMut<'_>> {
         let (start_bit_index, end_bit_index) =
             get_start_end_bit_index_from_range(&range, self.len());
         let start_byte = start_bit_index / 8;
@@ -110,11 +118,18 @@ impl BitVec {
         let bit_len = end_bit_index - start_bit_index;
         // We now need to adjust the start_bit_index to be relative to the start_byte
         let start_bit_index = start_bit_index - start_byte * 8;
-        BitSliceMut::new(
+        if end_byte >= self.buf.len() {
+            return Err(B3Error::SliceOutOfRange {
+                len: self.buf.len(),
+                slice_start: start_byte,
+                slice_end: end_byte,
+            });
+        }
+        Ok(BitSliceMut::new(
             &mut self.buf[start_byte..=end_byte],
             start_bit_index,
             start_bit_index + bit_len,
-        )
+        ))
     }
 }
 
@@ -129,13 +144,13 @@ impl BitBuffer for BitVec {
         self.len()
     }
 
-    fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> BitSlice<'_> {
+    fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> B3Result<BitSlice<'_>> {
         self.get_slice(range)
     }
 }
 
 impl BitBufferMut for BitVec {
-    fn get_slice_mut<T: RangeBounds<usize>>(&mut self, range: T) -> BitSliceMut<'_> {
+    fn get_slice_mut<T: RangeBounds<usize>>(&mut self, range: T) -> B3Result<BitSliceMut<'_>> {
         self.get_slice_mut(range)
     }
 }
@@ -234,15 +249,15 @@ mod tests {
     #[test]
     fn test_get_slice() {
         let vec = bitvec!(0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1);
-        let slice = vec.get_slice(3..);
+        let slice = vec.get_slice(3..).expect("valid slice");
         assert_eq!(slice.len(), 13);
         assert_eq!(slice, BitSlice::new(&[0b00000000, 0b11111111], 3, 16));
 
-        let slice = vec.get_slice(..=5);
+        let slice = vec.get_slice(..=5).expect("valid slice");
         assert_eq!(slice.len(), 6);
         assert_eq!(slice, BitSlice::new(&[0b00000000], 0, 6));
 
-        let slice = vec.get_slice(3..11);
+        let slice = vec.get_slice(3..11).expect("valid slice");
         assert_eq!(slice.len(), 8);
         assert_eq!(slice, BitSlice::new(&[0b00000000, 0b11111111], 3, 11));
     }
@@ -250,7 +265,7 @@ mod tests {
     #[test]
     fn test_bit_slice_mut() {
         let mut vec = bitvec!(0);
-        let mut slice = vec.get_slice_mut(..);
+        let mut slice = vec.get_slice_mut(..).expect("valid slice");
         assert_eq!(slice.len(), 1);
         slice.set(0, u1::new(1));
         assert_eq!(slice.at(0), u1::new(1));
