@@ -16,6 +16,7 @@ where
     Ok(val)
 }
 
+/// A trait which extends BitRead to add explicit read methods for all uX types.
 pub trait BitReadExts: BitRead {
     fn read_bool(&mut self) -> std::io::Result<bool> {
         self.read_u1().map(|v| v.into())

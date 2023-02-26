@@ -21,6 +21,7 @@ fn bit_write_exts_helper<T: BitTraits, const N: usize, U: BitWrite + ?Sized>(
     buf.write_all(&arr)
 }
 
+/// A trait which extends BitWrite to add explicit write methods for all uX types.
 pub trait BitWriteExts: BitWrite {
     fn write_bool(&mut self, value: bool) -> std::io::Result<()> {
         self.write_u1(value.into())

@@ -4,6 +4,7 @@ use ux::*;
 
 use paste::paste;
 
+/// A helper trait to simplify macro definitions for common operations
 pub trait BitTraits:
     Default
     + ShlAssign<usize>
@@ -50,13 +51,13 @@ impl BitTraits for u32 {
 }
 
 impl_bit_traits_for_ux!(u1, 1);
-impl_bit_traits_for_ux!(u2, 1);
-impl_bit_traits_for_ux!(u3, 1);
-impl_bit_traits_for_ux!(u4, 1);
-impl_bit_traits_for_ux!(u5, 1);
-impl_bit_traits_for_ux!(u6, 1);
-impl_bit_traits_for_ux!(u7, 1);
-impl_bit_traits_for_ux!(u9, 1);
+impl_bit_traits_for_ux!(u2, 2);
+impl_bit_traits_for_ux!(u3, 3);
+impl_bit_traits_for_ux!(u4, 4);
+impl_bit_traits_for_ux!(u5, 5);
+impl_bit_traits_for_ux!(u6, 6);
+impl_bit_traits_for_ux!(u7, 7);
+impl_bit_traits_for_ux!(u9, 9);
 impl_bit_traits_for_ux!(u10, 10);
 impl_bit_traits_for_ux!(u11, 11);
 impl_bit_traits_for_ux!(u12, 12);

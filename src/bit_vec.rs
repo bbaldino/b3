@@ -18,7 +18,9 @@ pub struct BitVec {
 
 // TODO: 'release' function that returns Vec and length? do we need the length?
 
+/// A Vector whose API is in bits, instead of bytes.
 impl BitVec {
+    /// Create a BitVec with an empty buffer
     pub fn new() -> BitVec {
         BitVec {
             buf: Vec::new(),
@@ -26,11 +28,19 @@ impl BitVec {
         }
     }
 
+    /// Create a BitVec from the given buffer.
+    ///
+    /// * `data`: The backing buffer to be used for this BitVec.  It's assumed that the vector
+    /// is "full" of bits, i.e. the length of this BitVec will be set to the length of the
+    /// vector * 8.
     pub fn from_vec(data: Vec<u8>) -> BitVec {
         let len = data.len() * 8;
         BitVec { buf: data, len }
     }
 
+    /// Create a BitVec with the given capacity (in bits)
+    ///
+    /// * `capacity`: the initial capacity of the BitVec, in bits
     pub fn with_capacity(capacity: usize) -> BitVec {
         BitVec {
             buf: Vec::with_capacity((capacity + 7) / 8),
@@ -38,6 +48,9 @@ impl BitVec {
         }
     }
 
+    /// Push the given value onto the end of this BitVec.  The value will be converted to a u1.
+    ///
+    /// * `value`: The value to push.
     pub fn push<T: Into<u1>>(&mut self, value: T) {
         // 'allocate' another byte if needed
         if self.len % 8 == 0 {
@@ -48,6 +61,7 @@ impl BitVec {
         self.len += 1;
     }
 
+    /// Remoe and return the last u1 in this buffer, if there is one.
     pub fn pop(&mut self) -> Option<u1> {
         if self.len == 0 {
             return None;
@@ -63,6 +77,9 @@ impl BitVec {
         Some(result)
     }
 
+    /// Get the bit at the given index.  Panics if index is out of range.
+    ///
+    /// * `index`: The index
     pub fn at(&self, index: usize) -> u1 {
         assert!(index < self.len());
         let byte_pos = index / 8;
@@ -70,6 +87,7 @@ impl BitVec {
         get_bit(self.buf[byte_pos], bit_index)
     }
 
+    /// Get an iterator to the bits in this BitVec
     pub fn iter(&self) -> BitVecIterator<'_> {
         BitVecIterator {
             vec: self,
@@ -77,14 +95,19 @@ impl BitVec {
         }
     }
 
+    /// Return the length of this BitVec in bits.
     pub fn len(&self) -> usize {
         self.len
     }
 
+    /// Return the capacity of this BitVec in bits.
     pub fn capacity(&self) -> usize {
         self.buf.capacity() * 8
     }
 
+    /// Get a slice of this BitVec representing the given range.
+    ///
+    /// * `range`: the range
     pub fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> B3Result<BitSlice<'_>> {
         let (start_bit_index, end_bit_index) =
             get_start_end_bit_index_from_range(&range, self.len());
@@ -107,6 +130,9 @@ impl BitVec {
         ))
     }
 
+    /// Get a mutable slice of this BitVec representing the given range.
+    ///
+    /// * `range`: the range
     pub fn get_slice_mut<T: RangeBounds<usize>>(&mut self, range: T) -> B3Result<BitSliceMut<'_>> {
         let (start_bit_index, end_bit_index) =
             get_start_end_bit_index_from_range(&range, self.len());
@@ -152,6 +178,9 @@ impl BitBufferMut for BitVec {
     }
 }
 
+/// Create a BitVec from a u8 slice, where it's assumed that each u8 value fits in a u1
+///
+/// * `data`: the data
 pub fn into_bitvec(data: &[u8]) -> BitVec {
     let mut vec = BitVec::with_capacity(data.len());
     for &val in data {
@@ -160,6 +189,11 @@ pub fn into_bitvec(data: &[u8]) -> BitVec {
     vec
 }
 
+/// Crate a BitVec with the given size full of the given element.  It's assume that the element
+/// fits into a u1.
+///
+/// * `elem`: The element to fill the BitVec with.
+/// * `n`: The size of the BitVec, in bits.
 pub fn from_elem(elem: u8, n: usize) -> BitVec {
     let mut vec = BitVec::with_capacity(n);
     for _ in 0..n {
@@ -202,6 +236,7 @@ macro_rules! bitarray {
     };
 }
 
+/// An iterator over the bits of a BitVec.
 pub struct BitVecIterator<'a> {
     vec: &'a BitVec,
     bit_pos: usize,
