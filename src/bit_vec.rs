@@ -26,12 +26,9 @@ impl BitVec {
         }
     }
 
-    pub fn from_u8_slice(data: &[u8]) -> BitVec {
+    pub fn from_vec(data: Vec<u8>) -> BitVec {
         let len = data.len() * 8;
-        BitVec {
-            buf: data.to_vec(),
-            len,
-        }
+        BitVec { buf: data, len }
     }
 
     pub fn with_capacity(capacity: usize) -> BitVec {

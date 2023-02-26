@@ -97,7 +97,7 @@ where
 impl BitCursor<BitVec> {
     pub fn from_vec(vec: Vec<u8>) -> BitCursor<BitVec> {
         BitCursor {
-            inner: BitVec::from_u8_slice(&vec[..]),
+            inner: BitVec::from_vec(vec),
             pos: 0,
         }
     }
