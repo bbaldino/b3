@@ -46,6 +46,18 @@ assert_eq!(vec.at(2), u1::new(0));
 let mut vec = bitvec!(1, 0, 1, 0, 1, 0);
 let mut cursor = BitCursor::new(vec);
 ```
+It also allows taking a "sub cursor" which limits how much can be read or written
+```
+let mut vec = bitvec!(1, 0, 1, 0, 1, 0);
+let mut cursor = BitCursor::new(vec);
+let mut sub_cursor = cursor.sub_cursor(..2);
+assert_eq!(sub_cursor.bits_remaining(), 2);
+assert_eq!(sub_cursor.read_u2().unwrap(), u2::new(2));
+assert_eq!(sub_cursor.bits_remaining(), 0);
+// Original cursor position is unchanged
+assert_eq!(cursor.bits_remaining(), 6);
+
+```
 
 ### BitRead, BitWrite
 `BitRead` and `BitWrite` are traits that mimic `std::io::Read` and `std::io::Write`, but define operations on the bit level:

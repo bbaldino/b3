@@ -233,11 +233,14 @@ mod tests {
         let vec = bitvec!(1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0);
         let mut cursor = BitCursor::new(vec);
 
-        let mut sub_cursor = cursor.sub_cursor(1..).expect("valid cursor");
+        let mut sub_cursor = cursor.sub_cursor(1..=3).expect("valid cursor");
+        assert_eq!(sub_cursor.bits_remaining(), 3);
 
         assert_eq!(sub_cursor.read_u3().unwrap(), u3::new(7));
+        assert_eq!(sub_cursor.bits_remaining(), 0);
 
         // Original cursor position should be in the same place
+        assert_eq!(cursor.bits_remaining(), 16);
         assert_eq!(cursor.read_u1().unwrap(), u1::new(1));
     }
 }
