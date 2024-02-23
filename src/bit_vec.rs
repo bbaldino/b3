@@ -19,6 +19,7 @@ pub struct BitVec {
 // TODO: 'release' function that returns Vec and length? do we need the length?
 
 /// A Vector whose API is in bits, instead of bytes.
+#[allow(clippy::len_without_is_empty)]
 impl BitVec {
     /// Create a BitVec with an empty buffer
     pub fn new() -> BitVec {

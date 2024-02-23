@@ -5,6 +5,7 @@ use crate::{
     slice::{BitSlice, BitSliceMut},
 };
 
+#[allow(clippy::len_without_is_empty)]
 pub trait BitBuffer {
     fn len(&self) -> usize;
     fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> B3Result<BitSlice<'_>>;

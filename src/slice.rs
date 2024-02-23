@@ -21,6 +21,7 @@ pub struct BitSlice<'a> {
     end_bit_index: usize,
 }
 
+#[allow(clippy::len_without_is_empty)]
 impl BitSlice<'_> {
     pub(crate) fn new(buf: &[u8], start_bit_index: usize, end_bit_index: usize) -> BitSlice {
         BitSlice {
@@ -172,6 +173,7 @@ pub struct BitSliceMut<'a> {
     end_bit_index: usize,
 }
 
+#[allow(clippy::len_without_is_empty)]
 impl BitSliceMut<'_> {
     pub(crate) fn new(
         buf: &mut [u8],
@@ -203,8 +205,8 @@ impl BitSliceMut<'_> {
         let byte_pos = bit_pos / 8;
         // Now make bit_pos relative to the byte
         let bit_pos = bit_pos % 8;
-        let mut byte = &mut self.buf[byte_pos];
-        set_bit(&mut byte, bit_pos, value);
+        let byte = &mut self.buf[byte_pos];
+        set_bit(byte, bit_pos, value);
     }
 
     pub fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> B3Result<BitSlice<'_>> {
@@ -340,6 +342,14 @@ mod tests {
         assert_eq!(slice_two, &bitarray!(1, 0, 1, 0)[..]);
         slice_two.set(0, u1::new(0));
         assert_eq!(slice_one.at(1), u1::new(0));
+    }
+
+    #[test]
+    fn test_set() {
+        let mut vec = bitvec!(0, 0, 0, 0);
+        let mut slice = vec.get_slice_mut(..).expect("valid slice");
+        slice.set(0, u1::new(1));
+        assert_eq!(vec, bitvec!(1, 0, 0, 0));
     }
 
     #[test]
