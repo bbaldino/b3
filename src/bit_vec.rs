@@ -105,7 +105,8 @@ impl BitVec {
         self.buf.capacity() * 8
     }
 
-    /// Get a slice of this BitVec representing the given range.
+    /// Get a slice of this BitVec representing the given range, where the left-most bit is index
+    /// 0.
     ///
     /// * `range`: the range
     pub fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> B3Result<BitSlice<'_>> {

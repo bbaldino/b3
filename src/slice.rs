@@ -10,10 +10,11 @@ use crate::{
     util::{get_bit, get_start_end_bit_index_from_range, set_bit},
 };
 
+// TODO: Multiple operations here are done bit-by-bit and _could_ likely be optimized to do
+// byte-wise operations when possible.
+
 /// A slice of bits.  |start_bit_index| is inclusive, |end_bit_index| is exclusive
-// TODO: Deriving PartialEq here requires that _all_ of 'buf' matches, but really we only care that
-// the bits from start_bit_index to end_bit_index match
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Eq)]
 pub struct BitSlice<'a> {
     buf: &'a [u8],
     start_bit_index: usize,
@@ -33,6 +34,9 @@ impl BitSlice<'_> {
         self.end_bit_index - self.start_bit_index
     }
 
+    /// Retrive the [`u1`] at the given index.  Panics if index is out-of-bounds.
+    ///
+    /// * `index`: The index.
     pub fn at(&self, index: usize) -> u1 {
         assert!(index < self.end_bit_index);
         let bit_pos = self.start_bit_index + index;
@@ -41,6 +45,17 @@ impl BitSlice<'_> {
         get_bit(byte, bit_pos % 8)
     }
 
+    /// Get an iterator over the bits in this slice.
+    pub fn iter(&self) -> BitSliceIterator<'_> {
+        BitSliceIterator {
+            slice: self,
+            curr_index: 0,
+        }
+    }
+
+    /// Get a slice of this slice corresponding to the given range.
+    ///
+    /// * `range`: The range.
     pub fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> B3Result<BitSlice<'_>> {
         let (start_bit_index, end_bit_index) =
             get_start_end_bit_index_from_range(&range, self.len());
@@ -68,6 +83,18 @@ impl BitSlice<'_> {
     }
 }
 
+impl PartialEq for BitSlice<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        if self.len() != other.len() {
+            return false;
+        }
+        self.iter()
+            .zip(other.iter())
+            .try_for_each(|(left, right)| if left == right { Ok(()) } else { Err(()) })
+            .is_ok()
+    }
+}
+
 impl BitRead for BitSlice<'_> {
     fn read(&mut self, buf: &mut [u1]) -> std::io::Result<usize> {
         let n = self.len().min(buf.len());
@@ -92,6 +119,25 @@ impl BitRead for BitSlice<'_> {
         }
 
         Ok(())
+    }
+}
+
+/// An interator over a [`BitSlice`].
+pub struct BitSliceIterator<'a> {
+    slice: &'a BitSlice<'a>,
+    curr_index: usize,
+}
+
+impl<'a> Iterator for BitSliceIterator<'a> {
+    type Item = u1;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.curr_index == self.slice.len() {
+            return None;
+        }
+        let item = self.slice.at(self.curr_index);
+        self.curr_index += 1;
+        Some(item)
     }
 }
 
@@ -294,5 +340,25 @@ mod tests {
         assert_eq!(slice_two, &bitarray!(1, 0, 1, 0)[..]);
         slice_two.set(0, u1::new(0));
         assert_eq!(slice_one.at(1), u1::new(0));
+    }
+
+    #[test]
+    fn test_iterator() {
+        let vec = bitvec!(1, 0, 1, 0, 1, 0);
+        let slice = vec.get_slice(2..4).expect("valid slice");
+        let mut iter = slice.iter();
+        assert_eq!(iter.next(), Some(u1::new(1)));
+        assert_eq!(iter.next(), Some(u1::new(0)));
+        assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    fn test_partial_eq() {
+        let vec_one = bitvec!(0, 1);
+        let vec_two = bitvec!(1, 1);
+        let slice_one = vec_one.get_slice(1..);
+        let slice_two = vec_two.get_slice(1..);
+
+        assert_eq!(slice_one, slice_two);
     }
 }
