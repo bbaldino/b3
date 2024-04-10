@@ -6,6 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ux = { git = "https://github.com/bbaldino/uX", branch = "default" }
+ux = "0.1.6"
 paste = "1"
 thiserror = "1"
