@@ -278,15 +278,29 @@ pub fn from_elem(elem: u8, n: usize) -> BitVec {
 /// Create a BitVec using array style syntax, either:
 /// bitvec!(0, 1, 0, ...);
 /// bitvec!(0; 10);
-// TODO: would be nice to expand this to validate only 0s and 1s were passed
 #[macro_export]
 macro_rules! bitvec {
-    ($($x:expr),+ $(,)?) => {
-        $crate::bit_vec::into_bitvec(&[$($x),+])
+    (0$(, $rest:tt)*) => {
+        bitvec!(@internal [0] $($rest),*)
+    };
+    (1$(, $rest:tt)*) => {
+        bitvec!(@internal [1] $($rest),*)
+    };
+    (@internal [$($done:expr$(,)?)+] 0$(, $rest:tt)*) => {
+        bitvec!(@internal [$($done)*, 0] $($rest),*)
+    };
+    (@internal [$($done:expr$(,)?)+] 1$(, $rest:tt)*) => {
+        bitvec!(@internal [$($done)*, 1] $($rest),*)
+    };
+    (@internal [$($done:expr$(,)?)+]) => {
+        $crate::bit_vec::into_bitvec(&[$($done),+])
     };
     ($elem:expr; $n:expr) => {
         $crate::bit_vec::from_elem($elem, $n)
-    }
+    };
+    ($val:expr$(, $rest:tt)*) => {
+        compile_error!("Only 1s and 0s are valid when creating a bitvec")
+    };
 }
 
 /// Create a [u1; N] array.  This is mainly used for testing the byteorder functions, which expect
