@@ -208,7 +208,7 @@ impl<T> BitWriteExts for T where T: BitWrite {}
 
 #[cfg(test)]
 mod tests {
-    use crate::{bit_cursor::BitCursor, bitarray, bitvec, byte_order::NetworkOrder};
+    use crate::{bit_cursor::BitCursor, bitvec, byte_order::NetworkOrder};
 
     use super::*;
 
@@ -218,10 +218,7 @@ mod tests {
         let mut cursor = BitCursor::new(vec);
 
         assert!(cursor.write_u2(u2::new(1)).is_ok());
-        assert_eq!(
-            cursor.into_inner().get_slice(..).unwrap(),
-            &bitarray!(0, 1)[..]
-        );
+        assert_eq!(cursor.into_inner(), bitvec!(0, 1));
 
         let vec = bitvec!(0; 12);
         let mut cursor = BitCursor::new(vec);
@@ -229,8 +226,8 @@ mod tests {
             .write_u12::<NetworkOrder>(u12::new(0b110011001100))
             .is_ok());
         assert_eq!(
-            cursor.into_inner().get_slice(..).unwrap(),
-            &bitarray!(1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0)[..]
+            cursor.into_inner(),
+            bitvec!(1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0)
         );
     }
 }

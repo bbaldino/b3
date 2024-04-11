@@ -336,7 +336,7 @@ impl BitBufferMut for BitSliceMut<'_> {
 mod tests {
     use ux::u1;
 
-    use crate::{bitarray, bitvec};
+    use crate::bitvec;
 
     #[test]
     fn get_slice_from_bit_slice() {
@@ -344,7 +344,7 @@ mod tests {
         let slice_one = vec.get_slice(1..).expect("valid slice");
         let slice_two = slice_one.get_slice(1..).expect("valid slice");
         assert_eq!(slice_two.len(), 4);
-        assert_eq!(slice_two, &bitarray!(1, 0, 1, 0)[..]);
+        assert_eq!(slice_two, bitvec!(1, 0, 1, 0));
     }
 
     #[test]
@@ -353,7 +353,7 @@ mod tests {
         let slice_one = vec.get_slice_mut(1..).expect("valid slice");
         let slice_two = slice_one.get_slice(1..).expect("valid slice");
         assert_eq!(slice_two.len(), 4);
-        assert_eq!(slice_two, &bitarray!(1, 0, 1, 0)[..]);
+        assert_eq!(slice_two, bitvec!(1, 0, 1, 0));
     }
 
     #[test]
@@ -362,7 +362,7 @@ mod tests {
         let mut slice_one = vec.get_slice_mut(1..).expect("valid slice");
         let mut slice_two = slice_one.get_slice_mut(1..).expect("valid slice");
         assert_eq!(slice_two.len(), 4);
-        assert_eq!(slice_two, &bitarray!(1, 0, 1, 0)[..]);
+        assert_eq!(slice_two, bitvec!(1, 0, 1, 0));
         slice_two.set(0, u1::new(0));
         assert_eq!(slice_one.at(1), u1::new(0));
     }

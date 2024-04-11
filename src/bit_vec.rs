@@ -289,7 +289,8 @@ macro_rules! bitvec {
     }
 }
 
-/// Create a [u1; N] array
+/// Create a [u1; N] array.  This is mainly used for testing the byteorder functions, which expect
+/// specifically-sized u1 arrays as their arguments.
 #[macro_export]
 macro_rules! bitarray {
     (0$(, $rest:tt)*) => {
