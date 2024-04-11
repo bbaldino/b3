@@ -310,6 +310,13 @@ impl PartialEq<&[u1]> for BitSliceMut<'_> {
     }
 }
 
+impl PartialEq<BitVec> for BitSliceMut<'_> {
+    fn eq(&self, other: &BitVec) -> bool {
+        // safety: this slice range will always be valid
+        PartialEq::eq(&self.get_slice(..).unwrap(), other)
+    }
+}
+
 impl BitBuffer for BitSliceMut<'_> {
     fn len(&self) -> usize {
         self.len()
