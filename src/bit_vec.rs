@@ -301,6 +301,9 @@ macro_rules! bitvec {
     ($val:expr$(, $rest:tt)*) => {
         compile_error!("Only 1s and 0s are valid when creating a bitvec")
     };
+    (@internal [$($done:expr$(,)?)+] $val:expr$(, $rest:tt)*) => {
+        compile_error!("Only 1s and 0s are valid when creating a bitvec")
+    };
 }
 
 /// Create a [u1; N] array.  This is mainly used for testing the byteorder functions, which expect
@@ -321,6 +324,12 @@ macro_rules! bitarray {
     };
     (@internal [$($done:expr$(,)?)+]) => {
         [$($done, )*]
+    };
+    ($val:expr$(, $rest:tt)*) => {
+        compile_error!("Only 1s and 0s are valid when creating a bitarray")
+    };
+    (@internal [$($done:expr$(,)?)+] $val:expr$(, $rest:tt)*) => {
+        compile_error!("Only 1s and 0s are valid when creating a bitarray")
     };
 }
 
