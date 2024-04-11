@@ -380,19 +380,19 @@ mod tests {
         let vec = bitvec!(0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1);
         let slice = vec.get_slice(3..).expect("valid slice");
         assert_eq!(slice.len(), 13);
-        assert_eq!(slice, BitSlice::new(&[0b00000000, 0b11111111], 3, 16));
+        assert_eq!(slice, bitvec!(0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1));
 
         let slice = vec.get_slice(..=5).expect("valid slice");
         assert_eq!(slice.len(), 6);
-        assert_eq!(slice, BitSlice::new(&[0b00000000], 0, 6));
+        assert_eq!(slice, bitvec!(0, 0, 0, 0, 0, 0));
 
         let slice = vec.get_slice(3..11).expect("valid slice");
         assert_eq!(slice.len(), 8);
-        assert_eq!(slice, BitSlice::new(&[0b00000000, 0b11111111], 3, 11));
+        assert_eq!(slice, bitvec!(0, 0, 0, 0, 0, 1, 1, 1));
     }
 
     #[test]
-    fn test_bit_slice_mut() {
+    fn test_get_slice_mut() {
         let mut vec = bitvec!(0);
         let mut slice = vec.get_slice_mut(..).expect("valid slice");
         assert_eq!(slice.len(), 1);
