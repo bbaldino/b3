@@ -52,6 +52,19 @@ impl BitVec {
     /// Push the given value onto the end of this BitVec.  The value will be converted to a u1.
     ///
     /// * `value`: The value to push.
+    /// # Example
+    /// ```
+    /// use ux::u1;
+    /// use b3::{bit_vec::BitVec, bit_traits::BitTraits};
+    ///
+    /// let mut vec = BitVec::new();
+    /// vec.push(u1::ONE);
+    /// vec.push(u1::ZERO);
+    /// vec.push(u1::ONE);
+    /// assert_eq!(vec.at(0), u1::ONE);
+    /// assert_eq!(vec.at(1), u1::ZERO);
+    /// assert_eq!(vec.at(2), u1::ONE);
+    /// ```
     pub fn push<T: Into<u1>>(&mut self, value: T) {
         // 'allocate' another byte if needed
         if self.len % 8 == 0 {
@@ -62,7 +75,16 @@ impl BitVec {
         self.len += 1;
     }
 
-    /// Remoe and return the last u1 in this buffer, if there is one.
+    /// Remove and return the last u1 in this buffer, if there is one.
+    /// # Example
+    /// ```
+    /// use ux::u1;
+    /// use b3::{bitvec, bit_traits::BitTraits};
+    /// let mut vec = bitvec!(0, 1);
+    /// assert_eq!(vec.pop().unwrap(), u1::ONE);
+    /// assert_eq!(vec.pop().unwrap(), u1::ZERO);
+    /// assert_eq!(vec.pop(), None);
+    /// ```
     pub fn pop(&mut self) -> Option<u1> {
         if self.len == 0 {
             return None;
@@ -81,6 +103,15 @@ impl BitVec {
     /// Get the bit at the given index.  Panics if index is out of range.
     ///
     /// * `index`: The index
+    /// # Example
+    /// ```
+    /// use ux::u1;
+    /// use b3::{bitvec, bit_traits::BitTraits};
+    /// let vec = bitvec!(0, 1, 1);
+    /// assert_eq!(vec.at(0), u1::ZERO);
+    /// assert_eq!(vec.at(1), u1::ONE);
+    /// assert_eq!(vec.at(2), u1::ONE);
+    /// ```
     pub fn at(&self, index: usize) -> u1 {
         assert!(index < self.len());
         let byte_pos = index / 8;
@@ -89,6 +120,17 @@ impl BitVec {
     }
 
     /// Get an iterator to the bits in this BitVec
+    /// # Example
+    /// ```
+    /// use ux::u1;
+    /// use b3::{bitvec, bit_traits::BitTraits};
+    /// let vec = bitvec!(1, 0, 1);
+    /// let mut iter = vec.iter();
+    /// assert_eq!(iter.next(), Some(u1::ONE));
+    /// assert_eq!(iter.next(), Some(u1::ZERO));
+    /// assert_eq!(iter.next(), Some(u1::ONE));
+    /// assert_eq!(iter.next(), None);
+    /// ```
     pub fn iter(&self) -> BitVecIterator<'_> {
         BitVecIterator {
             vec: self,
@@ -97,6 +139,12 @@ impl BitVec {
     }
 
     /// Return the length of this BitVec in bits.
+    /// # Example
+    /// ```
+    /// use b3::bitvec;
+    /// let vec = bitvec!(1, 0, 1);
+    /// assert_eq!(vec.len(), 3);
+    /// ```
     pub fn len(&self) -> usize {
         self.len
     }
@@ -110,6 +158,16 @@ impl BitVec {
     /// 0.
     ///
     /// * `range`: the range
+    ///
+    /// # Example
+    /// ```
+    /// use b3::bitvec;
+    ///
+    /// let vec = bitvec!(0, 0, 0, 0, 1, 1, 1, 1);
+    /// let slice = vec.get_slice(3..).expect("valid slice");
+    /// assert_eq!(slice.len(), 5);
+    /// assert_eq!(slice, bitvec!(0, 1, 1, 1, 1));
+    /// ```
     pub fn get_slice<T: RangeBounds<usize>>(&self, range: T) -> B3Result<BitSlice<'_>> {
         let (start_bit_index, end_bit_index) =
             get_start_end_bit_index_from_range(&range, self.len());
@@ -135,6 +193,19 @@ impl BitVec {
     /// Get a mutable slice of this BitVec representing the given range.
     ///
     /// * `range`: the range
+    ///
+    /// # Example
+    /// ```
+    /// use ux::u1;
+    /// use b3::{bitvec, bit_traits::BitTraits};
+    ///
+    /// let mut vec = bitvec!(0, 1, 1, 0);
+    /// let mut slice = vec.get_slice_mut(1..=2).expect("valid slice");
+    /// assert_eq!(slice.len(), 2);
+    /// slice.set(0, u1::ZERO);
+    /// slice.set(1, u1::ZERO);
+    /// assert_eq!(vec, bitvec!(0, 0, 0, 0));
+    /// ```
     pub fn get_slice_mut<T: RangeBounds<usize>>(&mut self, range: T) -> B3Result<BitSliceMut<'_>> {
         let (start_bit_index, end_bit_index) =
             get_start_end_bit_index_from_range(&range, self.len());

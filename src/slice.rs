@@ -5,6 +5,7 @@ use ux::u1;
 use crate::{
     bit_buffer::{BitBuffer, BitBufferMut},
     bit_read::BitRead,
+    bit_vec::BitVec,
     bit_write::BitWrite,
     error::{B3Error, B3Result},
     util::{get_bit, get_start_end_bit_index_from_range, set_bit},
@@ -142,6 +143,7 @@ impl<'a> Iterator for BitSliceIterator<'a> {
     }
 }
 
+// TODO: can we do a blanket impl for PartialEq based on some trait?
 impl PartialEq<&[u1]> for BitSlice<'_> {
     fn eq(&self, other: &&[u1]) -> bool {
         if self.len() != other.len() {
@@ -149,6 +151,20 @@ impl PartialEq<&[u1]> for BitSlice<'_> {
         }
         for (i, &bit) in other.iter().enumerate() {
             if self.at(i) != bit {
+                return false;
+            }
+        }
+        true
+    }
+}
+
+impl PartialEq<BitVec> for BitSlice<'_> {
+    fn eq(&self, other: &BitVec) -> bool {
+        if self.len() != other.len() {
+            return false;
+        }
+        for (i, ref bit) in other.iter().enumerate() {
+            if &self.at(i) != bit {
                 return false;
             }
         }
