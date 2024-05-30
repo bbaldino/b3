@@ -1,5 +1,8 @@
 # b3: brian's bit buffer
 
+### Archived
+Ultimately this crate was unsuccessful.  It sought out to accomplish something similar to [bitvec](https://github.com/ferrilab/bitvec) but for a more focused use case (without the BitOrder or BitStorage flexibility) as a tool to power my [bitcursor](https://github.com/bbaldino/bitcursor) crate.  Ultimately I found that the _magic_ achieved by the bitvec crate in order to accomplish treating a slice of u8 as though it were a slice of u1 to be quite complex and best left to the bitvec crate rather than be recreated, so bitcursor now leverages bitvec instead.
+
 b3 is a library with utilities to make reading non-standard-width values (u1, u7, u16, etc.) from a buffer easier.  It leverages the non-standard-width types defined in the [uX](https://crates.io/crates/ux) crate.  
 
 Note that there are many libraries out there that strive to accomplish this same thing and are likely more performant, idiomatic, and better named.  This project (currently, at least) is mainly something fun to play around with and learn Rust.
